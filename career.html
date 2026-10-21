@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Создай игрока — FNCS Career</title>
+  <meta name="description" content="Создай игрока: аватар, никнейм, регион с пингом и роль (Фрагер или IGL)." />
+  <meta name="theme-color" content="#070e24" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">FN</span>
+        <span class="brand-name">FNCS<span>&nbsp;CAREER</span></span>
+      </a>
+      <span class="header-step">Шаг <b>1</b> / 3 · Создай игрока</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="career">
+      <div class="container">
+        <div class="career-head">
+          <div>
+            <p class="eyebrow">Карьера · Fortnite Champion Series</p>
+            <h1>Создай <span class="accent">игрока</span></h1>
+          </div>
+        </div>
+
+        <div class="career-grid">
+          <!-- LEFT: avatar + nickname -->
+          <div class="panel">
+            <p class="panel-title">Аватар и никнейм</p>
+            <input type="file" id="avatarInput" accept="image/*" hidden />
+            <label class="avatar-up" id="avatarBox" for="avatarInput">
+              <img id="avatarImg" alt="" hidden />
+              <span class="av-hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5m0 0L8 9m4-4 4 4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+                Нажми, чтобы<br/>загрузить фото
+              </span>
+              <span class="av-edit">Сменить фото</span>
+            </label>
+
+            <div class="field">
+              <label for="nickname">Никнейм</label>
+              <input class="input" type="text" id="nickname" maxlength="20" placeholder="Твой игровой ник" autocomplete="off" />
+              <em class="error" data-for="nickname" style="color:#ff7a7a;font-size:12px;font-style:normal;"></em>
+            </div>
+
+            <p class="career-note">Фото и ник сохранятся на этом устройстве — карьера запомнит тебя (демо, без сервера).</p>
+          </div>
+
+          <!-- RIGHT: region + map -->
+          <div class="panel">
+            <p class="panel-title">Регион</p>
+            <div class="tabs" id="regionTabs">
+              <button class="tab active" data-region="europe">Европа</button>
+              <button class="tab" data-region="na-central">NA Central</button>
+              <button class="tab" data-region="na-west">NA West</button>
+              <button class="tab" data-region="brazil">Бразилия</button>
+              <button class="tab" data-region="asia">Азия</button>
+              <button class="tab" data-region="me">Ближний Восток</button>
+              <button class="tab" data-region="oce">Океания</button>
+            </div>
+            <p class="region-desc">Регион — это сервер и лестница дивизионов, на которых ты играешь. Цифра на стране — пинг до сервера в&nbsp;ближнем бою.</p>
+
+            <div class="ping-row">
+              <span class="ping-badge"><b>Пинг (мс)</b><span>до сервера Франкфурт</span></span>
+              <input class="input search" type="text" id="countrySearch" placeholder="Поиск страны…" autocomplete="off" />
+            </div>
+
+            <div class="map-wrap" id="mapWrap">
+              <div id="mapSvgHost"></div>
+              <div id="mapPlaceholder" style="display:none;position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);font-family:'Oswald';text-transform:uppercase;letter-spacing:.06em;padding:24px;background:rgba(8,16,40,.86);"></div>
+            </div>
+            <p class="map-hint">Выбери страну на карте. До 14&nbsp;мс — отличный пинг, 60+ — тяжело в&nbsp;ближнем бою.</p>
+            <div class="selected-line" id="selectedLine"><span style="color:var(--faint)">Страна не выбрана</span></div>
+          </div>
+        </div>
+
+        <!-- ROLES -->
+        <div class="panel roles">
+          <p class="panel-title">Позиция в команде</p>
+          <div class="role-grid" id="roleGrid">
+            <button class="role-card" data-role="fragger" type="button">
+              <div class="role-top">
+                <h4>Фрагер</h4>
+                <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="2"/></svg></span>
+              </div>
+              <p>Тот, кто пушит и делает киллы. Первым идёт в&nbsp;драку, забирает людей и&nbsp;держит прессинг.</p>
+              <p class="role-pick">Нажми, чтобы выбрать</p>
+            </button>
+            <button class="role-card" data-role="igl" type="button">
+              <div class="role-top">
+                <h4>IGL</h4>
+                <span class="role-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+              </div>
+              <p>In-Game Leader — мозг команды. Решает, куда идти, когда забирать лут и&nbsp;зону, ведёт тайминги.</p>
+              <p class="role-pick">Нажми, чтобы выбрать</p>
+            </button>
+          </div>
+
+          <div class="career-foot">
+            <span class="hint" id="footHint">Заполни аватар, ник, страну и&nbsp;позицию.</span>
+            <button class="btn btn-primary btn-lg" id="nextBtn" type="button">Далее
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span data-year>2026</span> FNCS Career — фан-проект. Не связан с Epic Games.</span>
+      <span>Демо-версия · без бэкенда</span>
+    </div>
+  </footer>
+
+  <script src="assets/europe-data.js"></script>
+  <script src="career.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "fortnite-career",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Fortnite FNCS career — static pages (landing + career setup)",
+  "scripts": {
+    "serve": "node tools/serve.js 5182"
+  },
+  "devDependencies": {
+    "@svg-maps/world": "^2.0.0"
+  }
+}

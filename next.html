@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Игрок создан — FNCS Career</title>
+  <meta name="theme-color" content="#070e24" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">FN</span>
+        <span class="brand-name">FNCS<span>&nbsp;CAREER</span></span>
+      </a>
+      <span class="header-step">Шаг <b>2</b> / 3 · Игрок создан</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary">
+      <div class="container">
+        <div class="summary-card">
+          <img class="sum-av" id="sumAv" alt="Аватар" />
+          <p class="eyebrow" style="font-family:'Oswald';text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--faint)">Игрок создан</p>
+          <h1>Добро пожаловать<span class="accent">!</span></h1>
+          <p class="sum-nick" id="sumNick">—</p>
+
+          <div class="sum-rows">
+            <div class="sum-row"><div class="k">Регион</div><div class="v"><img class="flag" id="sumFlag" alt="" /> <span id="sumCountry">—</span></div></div>
+            <div class="sum-row"><div class="k">Пинг</div><div class="v" id="sumPing">—</div></div>
+            <div class="sum-row"><div class="k">Позиция</div><div class="v" id="sumRole">—</div></div>
+            <div class="sum-row"><div class="k">Сервер</div><div class="v">Франкфурт</div></div>
+          </div>
+
+          <p class="sum-soon">Карьера запомнила твои данные. Дальше — выбор сезона, дивизионы и&nbsp;первые матчи FNCS. Эту часть доделаем следующей.</p>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+            <a class="btn btn-ghost" href="career.html">Изменить игрока</a>
+            <a class="btn btn-primary" href="index.html">На главную
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span data-year>2026</span> FNCS Career — фан-проект. Не связан с Epic Games.</span>
+      <span>Демо-версия · без бэкенда</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var g = function (k) { return localStorage.getItem(k) || ""; };
+      var av = g("fnc_avatar");
+      var sumAv = document.getElementById("sumAv");
+      if (av) sumAv.src = av; else sumAv.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='%23152a60'/%3E%3C/svg%3E";
+      document.getElementById("sumNick").textContent = g("fnc_nick") || "Игрок";
+      var cc = g("fnc_country");
+      if (cc) document.getElementById("sumFlag").src = "https://flagcdn.com/w320/" + cc + ".png";
+      document.getElementById("sumCountry").textContent = g("fnc_country_name") || "—";
+      var ping = g("fnc_ping");
+      document.getElementById("sumPing").textContent = ping !== "" ? ping + " мс" : "—";
+      var role = g("fnc_role");
+      document.getElementById("sumRole").textContent = role === "igl" ? "IGL (лидер)" : role === "fragger" ? "Фрагер" : "—";
+      document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });
+    })();
+  </script>
+</body>
+</html>

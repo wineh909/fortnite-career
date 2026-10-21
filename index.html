@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FNCS Career — построй карьеру про-игрока в Fortnite</title>
+  <meta name="description" content="Пройди путь от новичка до чемпиона FNCS: создай игрока, выбери регион и роль, играй сезон за сезоном." />
+  <meta name="theme-color" content="#070e24" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">FN</span>
+        <span class="brand-name">FNCS<span>&nbsp;CAREER</span></span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html" class="active">Главная</a>
+        <a href="career.html">Карьера</a>
+        <a href="#modes">Режимы</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="hero-badge">◆ Fortnite Champion Series</span>
+        <h1>Построй <em>карьеру</em> про-игрока в&nbsp;Fortnite</h1>
+        <p class="hero-sub">Один игрок, сезон за&nbsp;сезоном по&nbsp;реальному календарю FNCS: дивизионы, мейджоры и&nbsp;ЛАНы. Создай игрока, выбери регион и&nbsp;роль — и&nbsp;вперёд к&nbsp;вершине.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="career.html">Начать карьеру
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#modes">Как это работает</a>
+        </div>
+        <div class="chips">
+          <span class="chip"><b>2019 → 2026</b></span>
+          <span class="chip">Дивизионы</span>
+          <span class="chip">Мейджоры и ЛАНы</span>
+          <span class="chip">Соло · Дуо · Трио</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="modes" id="modes">
+      <div class="container">
+        <div class="mode-grid">
+          <article class="mode-card is-primary">
+            <p class="mode-eyebrow">Режим 1 · Карьера</p>
+            <h3>Стань <em>про.</em> Сезон за&nbsp;сезоном.</h3>
+            <p>Создай игрока: аватар, никнейм, регион и&nbsp;роль. Проходи сезоны FNCS, поднимайся по&nbsp;дивизионам и&nbsp;бери трофеи.</p>
+            <div class="mode-tags"><span>Новичок → про</span><span>Регион и пинг</span><span>Фрагер / IGL</span></div>
+            <a class="btn btn-primary btn-block" href="career.html">Начать карьеру
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+            </a>
+          </article>
+
+          <article class="mode-card">
+            <p class="mode-eyebrow">Режим 2 · Менеджер</p>
+            <h3>Собери <em>клуб.</em> Веди его.</h3>
+            <p>Head of Fortnite: собери состав, веди клуб через сезон, решай между матчами. Турниры по&nbsp;реальному календарю.</p>
+            <div class="mode-tags"><span>2019 — 2026</span><span>Real clubs</span><span>Match day</span></div>
+            <p class="mode-soon">● Скоро</p>
+          </article>
+
+          <article class="mode-card">
+            <p class="mode-eyebrow">Режим 3 · Драфт</p>
+            <h3>Собери <em>состав.</em> Любой год.</h3>
+            <p>Собери команду из&nbsp;реальных карточек и&nbsp;пройди турнир: любой год FNCS, All&nbsp;FNCS, дуо/трио/сквады.</p>
+            <div class="mode-tags"><span>All FNCS</span><span>Реальные карточки</span><span>Дуо · Трио</span></div>
+            <p class="mode-soon">● Скоро</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span data-year>2026</span> FNCS Career — фан-проект. Не связан с Epic Games.</span>
+      <span>Демо-версия · без бэкенда</span>
+    </div>
+  </footer>
+
+  <script>document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });</script>
+</body>
+</html>
