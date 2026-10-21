@@ -147,6 +147,7 @@ p { margin: 0; }
 /* map */
 .map-wrap { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line2); background: #081634; }
 .map-wrap svg { width: 100%; height: auto; display: block; }
+.map-wrap image { filter: saturate(1.18) brightness(1.08); }
 .map-wrap .country { fill: transparent; stroke: rgba(8, 20, 54, .9); stroke-width: .6; cursor: pointer; transition: fill .15s, stroke .15s; }
 .map-wrap .country:hover { fill: rgba(255, 255, 255, .16); }
 .map-wrap .country.dim { fill: rgba(5, 11, 30, .66); }
