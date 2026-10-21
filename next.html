@@ -35,7 +35,7 @@
             <div class="sum-row"><div class="k">Регион</div><div class="v"><img class="flag" id="sumFlag" alt="" /> <span id="sumCountry">—</span></div></div>
             <div class="sum-row"><div class="k">Пинг</div><div class="v" id="sumPing">—</div></div>
             <div class="sum-row"><div class="k">Позиция</div><div class="v" id="sumRole">—</div></div>
-            <div class="sum-row"><div class="k">Сервер</div><div class="v">Франкфурт</div></div>
+            <div class="sum-row"><div class="k">Рейтинг</div><div class="v" id="sumOvr">—</div></div>
           </div>
 
           <p class="sum-soon">Карьера запомнила твои данные. Дальше — выбор сезона, дивизионы и&nbsp;первые матчи FNCS. Эту часть доделаем следующей.</p>
@@ -65,13 +65,15 @@
       var sumAv = document.getElementById("sumAv");
       if (av) sumAv.src = av; else sumAv.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='%23152a60'/%3E%3C/svg%3E";
       document.getElementById("sumNick").textContent = g("fnc_nick") || "Игрок";
-      var cc = g("fnc_country");
+      var cc = g("fnc_country_flag") || g("fnc_country").replace(/^ru-.*/, "ru");
       if (cc) document.getElementById("sumFlag").src = "https://flagcdn.com/w320/" + cc + ".png";
       document.getElementById("sumCountry").textContent = g("fnc_country_name") || "—";
       var ping = g("fnc_ping");
       document.getElementById("sumPing").textContent = ping !== "" ? ping + " мс" : "—";
       var role = g("fnc_role");
       document.getElementById("sumRole").textContent = role === "igl" ? "IGL (лидер)" : role === "fragger" ? "Фрагер" : "—";
+      var ovr = g("fnc_overall");
+      document.getElementById("sumOvr").textContent = ovr ? ovr + " · " + (g("fnc_rarity") || "") : "—";
       document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });
     })();
   </script>

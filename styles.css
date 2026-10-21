@@ -207,3 +207,92 @@ p { margin: 0; }
   .career-foot .btn { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ===================================================================
+   v2 — centered layout, original angular panels, player card
+   =================================================================== */
+.container.narrow { max-width: 720px; }
+
+/* angular panel — distinct from the reference's plain cards */
+.fcard {
+  position: relative;
+  background: linear-gradient(165deg, var(--panel2), var(--panel));
+  padding: 24px 24px 22px;
+  margin-bottom: 18px;
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  box-shadow: 0 22px 52px -34px rgba(0, 0, 0, .85), inset 0 0 0 1.5px rgba(255, 255, 255, .07);
+}
+.fcard::before { content: ""; position: absolute; top: 0; left: 0; width: 64px; height: 3px; background: linear-gradient(90deg, var(--accent), var(--cyan)); }
+.panel-title.center-title { text-align: center; }
+
+.hero-center { text-align: center; padding: 76px 0 30px; }
+.hero-center .container { display: flex; flex-direction: column; align-items: center; }
+.hero-center h1 { max-width: none; }
+.hero-center .hero-sub { margin: 20px auto 0; max-width: 52ch; }
+.hero-center .hero-actions, .hero-center .chips { justify-content: center; }
+
+.mode-feature { text-align: center; padding: 34px 30px 30px; }
+.mode-feature .fcard-tag { display: inline-block; font-family: "Oswald"; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; color: var(--cyan); background: rgba(53, 224, 207, .1); border: 1px solid rgba(53, 224, 207, .3); padding: 6px 13px; border-radius: 999px; margin-bottom: 16px; }
+.mode-feature h3 { font-size: 30px; font-style: italic; margin-bottom: 12px; }
+.mode-feature h3 em { color: var(--accent); font-style: italic; }
+.mode-feature > p { color: var(--muted); font-size: 15px; max-width: 48ch; margin: 0 auto 20px; }
+.feat-list { list-style: none; margin: 0 auto 24px; padding: 0; max-width: 420px; text-align: left; display: flex; flex-direction: column; gap: 10px; }
+.feat-list li { display: flex; align-items: center; gap: 12px; font-size: 14.5px; color: var(--ink); }
+.feat-list .fi { flex: none; width: 30px; height: 30px; display: grid; place-items: center; font-family: "Oswald"; font-weight: 700; font-size: 13px; color: var(--accent-ink); background: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 100%, 0 100%); }
+.feat-list b { color: var(--accent); }
+
+.career-head.center { text-align: center; display: block; margin-bottom: 22px; }
+.career-head.center .eyebrow { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .14em; font-size: 13px; color: var(--faint); }
+.career-head.center h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); font-style: italic; margin: 6px 0; }
+.section-sub { color: var(--muted); font-size: 15px; }
+.center-tabs { justify-content: center; }
+.career-foot.center { flex-direction: column; align-items: center; gap: 14px; margin-top: 20px; }
+.career-foot.center .hint { text-align: center; }
+.muted-txt { color: var(--faint); }
+.hint-mini { display: block; font-style: normal; font-size: 12px; color: var(--faint); margin-top: 6px; }
+
+.profile-row { display: grid; grid-template-columns: 150px 1fr; gap: 22px; align-items: start; }
+.avatar-col .avatar-up { aspect-ratio: 1; clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px)); border-radius: 0; }
+.profile-fields .field:first-child { margin-top: 0; }
+
+#mapPlaceholder { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: var(--muted); font-family: "Oswald"; text-transform: uppercase; letter-spacing: .06em; padding: 24px; background: rgba(8, 16, 40, .9); line-height: 1.5; }
+.selected-line { justify-content: center; }
+#roleGrid { max-width: 560px; margin: 0 auto; }
+
+/* ===================== PLAYER CARD ===================== */
+.pcard-section { margin: 6px 0 20px; }
+.pcard-empty { text-align: center; color: var(--faint); font-size: 14px; padding: 26px; border: 1.5px dashed var(--line2); clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); background: rgba(0, 0, 0, .18); }
+.pcard {
+  --rar: #3fe07a;
+  position: relative; max-width: 420px; margin: 0 auto; padding: 22px 22px 20px; color: var(--ink);
+  background: radial-gradient(120% 90% at 85% 0%, color-mix(in srgb, var(--rar) 26%, transparent), transparent 60%), linear-gradient(170deg, #11204b, #0b1430);
+  clip-path: polygon(0 0, calc(100% - 26px) 0, 100% 26px, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+  box-shadow: 0 30px 70px -34px rgba(0, 0, 0, .9), inset 0 0 0 2px var(--rar), inset 0 0 40px -10px color-mix(in srgb, var(--rar) 40%, transparent);
+  animation: pcIn .4s var(--ease);
+}
+@keyframes pcIn { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+.pcard-top { display: flex; justify-content: space-between; gap: 14px; }
+.pc-ovr { font-family: "Oswald"; font-weight: 700; font-size: 58px; line-height: .9; color: var(--rar); text-shadow: 0 2px 10px color-mix(in srgb, var(--rar) 50%, transparent); }
+.pc-base { font-family: "Oswald"; font-size: 15px; color: var(--muted); margin-top: 2px; letter-spacing: .02em; }
+.pc-base span { color: var(--green); font-weight: 700; }
+.pc-pos { display: inline-block; margin-top: 10px; font-family: "Oswald"; font-weight: 700; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); background: var(--rar); padding: 3px 11px; clip-path: polygon(0 0, 100% 0, 100% 70%, 88% 100%, 0 100%); }
+.pc-region { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-family: "Oswald"; text-transform: uppercase; letter-spacing: .05em; font-size: 13px; color: var(--muted); }
+.pc-region .flag { width: 24px; height: 16px; border-radius: 3px; object-fit: cover; border: 1px solid var(--line2); }
+.pcard-av { width: 92px; height: 92px; flex: none; background: #0a1430; border: 2px solid var(--rar); clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px)); display: grid; place-items: center; overflow: hidden; }
+.pcard-av img { width: 100%; height: 100%; object-fit: cover; }
+.pcard-av .noav { color: var(--faint); font-family: "Oswald"; font-size: 12px; }
+.pcard-nick { font-family: "Oswald"; font-weight: 700; font-style: italic; font-size: 26px; text-transform: uppercase; letter-spacing: .01em; margin: 14px 0 2px; }
+.pcard-rarity { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; color: var(--rar); margin-bottom: 14px; }
+.pcard-stats { display: grid; gap: 9px; padding-top: 14px; border-top: 1px solid var(--line); }
+.pc-row { display: grid; grid-template-columns: 110px 30px 1fr; align-items: center; gap: 10px; }
+.pc-row .s-k { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .03em; font-size: 12.5px; color: var(--muted); }
+.pc-row .s-v { font-family: "Oswald"; font-weight: 700; font-size: 16px; text-align: right; color: var(--ink); }
+.pc-row .s-bar { height: 7px; background: rgba(255, 255, 255, .09); border-radius: 4px; overflow: hidden; }
+.pc-row .s-bar i { display: block; height: 100%; background: var(--rar); border-radius: 4px; }
+.pcard-div { margin-top: 16px; font-family: "Oswald"; text-transform: uppercase; letter-spacing: .08em; font-size: 13px; color: var(--muted); text-align: center; padding-top: 12px; border-top: 1px solid var(--line); }
+.pcard-div b { color: var(--rar); }
+
+@media (max-width: 560px) {
+  .profile-row { grid-template-columns: 1fr; }
+  .avatar-col { max-width: 170px; margin: 0 auto; }
+}
