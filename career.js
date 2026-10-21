@@ -5,15 +5,16 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); };
 
-  /* Ping (ms to Frankfurt) — демо. Россия вынесена в две зоны (ниже). */
+  /* Ping (ms to Frankfurt) — демо. Все страны. Россия — две зоны (ниже). */
   var PING = {
-    de: 9, nl: 11, be: 12, lu: 10, fr: 17, ch: 14, at: 13, cz: 15, pl: 21, sk: 17, hu: 19,
-    si: 18, hr: 20, it: 23, es: 31, pt: 41, gb: 17, ie: 27, dk: 18, no: 31, se: 27, fi: 34,
-    ee: 35, lv: 34, lt: 32, by: 37, ua: 41, md: 44, ro: 31, bg: 37, rs: 29, ba: 27, me: 31,
-    mk: 35, al: 39, gr: 47, mt: 37, cy: 62, tr: 57, ge: 72, am: 80, az: 84, is: 39, fo: 33,
-    ax: 35, xk: 35, ma: 46, dz: 41, tn: 39, ly: 60
+    de: 9, nl: 11, be: 12, lu: 10, fr: 17, ch: 14, at: 13, cz: 15, pl: 21, sk: 17, hu: 19, si: 18,
+    hr: 20, it: 23, es: 31, pt: 41, gb: 17, ie: 27, dk: 18, no: 31, se: 27, fi: 34, ee: 35, lv: 34,
+    lt: 32, by: 37, ua: 41, md: 44, ro: 31, bg: 37, rs: 29, ba: 27, me: 31, mk: 35, al: 39, gr: 47,
+    mt: 37, cy: 62, tr: 57, ge: 72, am: 80, az: 84, is: 39, fo: 33, ax: 35, xk: 35, ma: 46, dz: 41,
+    tn: 39, ly: 60, li: 13, ad: 30, mc: 19, sm: 25, va: 23, kz: 88, ir: 95, sa: 85, iq: 92, eg: 70,
+    sy: 66, lb: 68, il: 62, jo: 66, ps: 64, kw: 90
   };
-  var RU_WEST = 40, RU_EAST = 80, RU_SPLIT_X = 628; // world-x split for Russia
+  var RU_WEST = 40, RU_EAST = 80, RU_SPLIT_X = 616;
   var RU = {
     ru: "Россия", de: "Германия", fr: "Франция", gb: "Великобритания", it: "Италия", es: "Испания",
     pt: "Португалия", nl: "Нидерланды", be: "Бельгия", lu: "Люксембург", ch: "Швейцария", at: "Австрия",
@@ -30,41 +31,35 @@
   var SPRAWL = { ru: 1, kz: 1, ir: 1, sa: 1, iq: 1, eg: 1, ly: 1, sy: 1, jo: 1, il: 1, lb: 1, ps: 1, kw: 1 };
   var isoOf = function (id) { return id.indexOf("ru-") === 0 ? "ru" : id; };
   var flagUrl = function (id) { return "https://flagcdn.com/w320/" + isoOf(id) + ".png"; };
-  var nameOf = function (id, fallback) {
-    if (id === "ru-west") return "Россия · Запад";
-    if (id === "ru-east") return "Россия · Восток";
-    return RU[id] || fallback || id.toUpperCase();
-  };
+  var nameOf = function (id, fb) { return id === "ru-west" ? "Россия · Запад" : id === "ru-east" ? "Россия · Восток" : (RU[id] || fb || id.toUpperCase()); };
   var pingOf = function (id) { return id === "ru-west" ? RU_WEST : id === "ru-east" ? RU_EAST : PING[id]; };
 
   var state = {
-    avatar: localStorage.getItem("fnc_avatar") || "",
-    nick: localStorage.getItem("fnc_nick") || "",
-    age: localStorage.getItem("fnc_age") || "",
-    country: localStorage.getItem("fnc_country") || "",
+    avatar: localStorage.getItem("fnc_avatar") || "", nick: localStorage.getItem("fnc_nick") || "",
+    age: localStorage.getItem("fnc_age") || "", country: localStorage.getItem("fnc_country") || "",
     role: localStorage.getItem("fnc_role") || ""
   };
 
   /* ================= MAP ================= */
   var host = $("#mapSvgHost"), svg, pt, paths = {}, labelSize = 5;
+  var base = null, view = null;
 
   function labelPoint(path, b) {
-    pt.x = b.x + b.width / 2; pt.y = b.y + b.height / 2;
-    if (path.isPointInFill(pt)) return { x: pt.x, y: pt.y };
-    var sx = 0, sy = 0, n = 0, step = Math.max(b.width, b.height) / 18;
+    var step = Math.max(b.width, b.height) / 20, sx = 0, sy = 0, n = 0, ins = [];
     for (var x = b.x + step / 2; x < b.x + b.width; x += step)
-      for (var y = b.y + step / 2; y < b.y + b.height; y += step) { pt.x = x; pt.y = y; if (path.isPointInFill(pt)) { sx += x; sy += y; n++; } }
-    return n ? { x: sx / n, y: sy / n } : { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+      for (var y = b.y + step / 2; y < b.y + b.height; y += step) { pt.x = x; pt.y = y; if (path.isPointInFill(pt)) { sx += x; sy += y; n++; ins.push([x, y]); } }
+    if (!n) return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+    var cx = sx / n, cy = sy / n; pt.x = cx; pt.y = cy;
+    if (path.isPointInFill(pt)) return { x: cx, y: cy };
+    var best = ins[0], bd = Infinity;
+    for (var i = 0; i < ins.length; i++) { var d = (ins[i][0] - cx) * (ins[i][0] - cx) + (ins[i][1] - cy) * (ins[i][1] - cy); if (d < bd) { bd = d; best = ins[i]; } }
+    return { x: best[0], y: best[1] };
   }
-  function svgClickX(evt) {
-    var m = svg.getScreenCTM(); if (!m) return null;
-    var p = svg.createSVGPoint(); p.x = evt.clientX; p.y = evt.clientY;
-    return p.matrixTransform(m.inverse()).x;
-  }
-  function addLabel(val, x, y) {
+  function svgPoint(evt) { var m = svg.getScreenCTM(); if (!m) return null; var p = svg.createSVGPoint(); p.x = evt.clientX; p.y = evt.clientY; return p.matrixTransform(m.inverse()); }
+  function addLabel(val, x, y, small) {
     var t = document.createElementNS(SVGNS, "text");
-    t.setAttribute("class", "ping-label"); t.setAttribute("x", x); t.setAttribute("y", y);
-    t.setAttribute("font-size", labelSize); t.style.strokeWidth = (labelSize * 0.16) + "px";
+    t.setAttribute("class", "ping-label" + (small ? " lbl-sm" : "")); t.setAttribute("x", x); t.setAttribute("y", y);
+    t.setAttribute("font-size", labelSize); t.style.strokeWidth = (labelSize * 0.17) + "px";
     t.textContent = val; svg.appendChild(t);
   }
 
@@ -84,14 +79,14 @@
       p.style.pointerEvents = "all";
       p.setAttribute("data-id", loc.id); p.setAttribute("data-name", nameOf(loc.id, loc.name));
       p.addEventListener("click", function (e) {
-        if (loc.id === "ru") { var x = svgClickX(e); selectCountry(x != null && x < RU_SPLIT_X ? "ru-west" : "ru-east"); }
+        if (panned) { panned = false; return; }
+        if (loc.id === "ru") { var q = svgPoint(e); selectCountry(q && q.x < RU_SPLIT_X ? "ru-west" : "ru-east"); }
         else selectCountry(loc.id);
       });
       svg.appendChild(p); paths[loc.id] = p;
     });
     host.appendChild(svg);
 
-    /* frame to Europe (exclude sprawlers), extend EAST so Russia's two zones fit */
     var fb = null;
     Object.keys(paths).forEach(function (id) {
       if (SPRAWL[id]) return; var b = paths[id].getBBox(); if (!b.width) return;
@@ -99,11 +94,11 @@
       else { fb.x = Math.min(fb.x, b.x); fb.y = Math.min(fb.y, b.y); fb.x2 = Math.max(fb.x2, b.x + b.width); fb.y2 = Math.max(fb.y2, b.y + b.height); }
     });
     var w = fb.x2 - fb.x, h = fb.y2 - fb.y, padX = w * 0.02, padY = h * 0.04;
-    var vb = [fb.x - padX, fb.y - padY, w + padX * 2 + w * 0.36, h + padY * 2];
-    svg.setAttribute("viewBox", vb.join(" "));
-    labelSize = w * 0.023;
+    base = { x: fb.x - padX, y: fb.y - padY, w: w + padX * 2 + w * 0.30, h: h + padY * 2 };
+    view = { x: base.x, y: base.y, w: base.w, h: base.h };
+    applyView();
+    labelSize = w * 0.021;
 
-    /* flag fill (clipPath + image) + ping labels */
     data.locations.forEach(function (loc) {
       var p = paths[loc.id], b = p.getBBox(); if (!b.width) return;
       var cp = document.createElementNS(SVGNS, "clipPath"); cp.id = "cp-" + loc.id; cp.setAttribute("clipPathUnits", "userSpaceOnUse");
@@ -113,35 +108,80 @@
       im.setAttribute("x", b.x); im.setAttribute("y", b.y); im.setAttribute("width", b.width); im.setAttribute("height", b.height);
       im.setAttribute("preserveAspectRatio", "xMidYMid slice"); im.setAttribute("clip-path", "url(#cp-" + loc.id + ")");
       im.style.pointerEvents = "none"; svg.insertBefore(im, p);
-
-      if (loc.id === "ru" || PING[loc.id] == null) return;
-      var lp = labelPoint(p, b);
-      var inX = lp.x > vb[0] + vb[2] * 0.008 && lp.x < vb[0] + vb[2] * 0.992;
-      var inY = lp.y > vb[1] + vb[3] * 0.01 && lp.y < vb[1] + vb[3] * 0.99;
-      if (!inX || !inY) return;
-      if (b.width < w * 0.016 && b.height < h * 0.016) return;
-      addLabel(PING[loc.id], lp.x, lp.y);
     });
 
-    /* Russia: two zones */
-    addLabel(RU_WEST, 585, 228);
-    addLabel(RU_EAST, 672, 228);
+    /* Russia divider line (black), clipped to Russia */
+    var line = document.createElementNS(SVGNS, "line");
+    line.setAttribute("x1", RU_SPLIT_X); line.setAttribute("x2", RU_SPLIT_X);
+    line.setAttribute("y1", base.y); line.setAttribute("y2", base.y + base.h);
+    line.setAttribute("clip-path", "url(#cp-ru)"); line.setAttribute("stroke", "#061024");
+    line.setAttribute("stroke-width", "3.5"); line.setAttribute("vector-effect", "non-scaling-stroke");
+    line.style.pointerEvents = "none"; svg.appendChild(line);
+
+    /* labels — every country */
+    data.locations.forEach(function (loc) {
+      if (loc.id === "ru" || PING[loc.id] == null) return;
+      var p = paths[loc.id], b = p.getBBox(); if (!b.width) return;
+      var lp = labelPoint(p, b);
+      if (lp.x < base.x || lp.x > base.x + base.w || lp.y < base.y || lp.y > base.y + base.h) return;
+      var small = b.width < w * 0.05 && b.height < h * 0.05;
+      addLabel(PING[loc.id], lp.x, lp.y, small);
+    });
+    addLabel(RU_WEST, 582, 224, false);
+    addLabel(RU_EAST, 648, 224, false);
+
+    initZoomPan();
+  }
+
+  /* ---- zoom / pan ---- */
+  var panned = false;
+  function applyView() {
+    svg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
+    svg.classList.toggle("zoomed", view.w < base.w * 0.64);
+  }
+  function clampView() {
+    view.w = Math.min(view.w, base.w); view.h = Math.min(view.h, base.h);
+    view.x = Math.max(base.x, Math.min(base.x + base.w - view.w, view.x));
+    view.y = Math.max(base.y, Math.min(base.y + base.h - view.h, view.y));
+  }
+  function zoomAt(scale, cx, cy) {
+    if (cx == null) { cx = view.x + view.w / 2; cy = view.y + view.h / 2; }
+    var nw = Math.min(base.w, Math.max(base.w * 0.22, view.w * scale)), k = nw / view.w;
+    view.x = cx - (cx - view.x) * k; view.y = cy - (cy - view.y) * k;
+    view.w = nw; view.h = view.h * k; clampView(); applyView();
+  }
+  function initZoomPan() {
+    var mw = $("#mapWrap");
+    var zi = $("#zoomIn"), zo = $("#zoomOut");
+    if (zi) zi.addEventListener("click", function () { zoomAt(0.65); });
+    if (zo) zo.addEventListener("click", function () { zoomAt(1 / 0.65); });
+    mw.addEventListener("wheel", function (e) {
+      e.preventDefault(); var q = svgPoint(e); zoomAt(e.deltaY < 0 ? 0.82 : 1 / 0.82, q && q.x, q && q.y);
+    }, { passive: false });
+    var drag = false, last = null, moved = 0;
+    svg.addEventListener("pointerdown", function (e) { drag = true; moved = 0; panned = false; last = svgPoint(e); try { svg.setPointerCapture(e.pointerId); } catch (x) {} });
+    svg.addEventListener("pointermove", function (e) {
+      if (!drag || !last) return; var q = svgPoint(e); if (!q) return;
+      var dx = q.x - last.x, dy = q.y - last.y; moved += Math.abs(dx) + Math.abs(dy);
+      view.x -= dx; view.y -= dy; clampView(); applyView();
+      if (moved > view.w * 0.02) { panned = true; mw.classList.add("grabbing"); }
+      last = svgPoint(e);
+    });
+    var end = function () { drag = false; last = null; mw.classList.remove("grabbing"); };
+    svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
   }
 
   var selectedLine = $("#selectedLine");
   function selectCountry(id) {
-    var baseId = isoOf(id);
-    if (!paths[baseId]) return;
+    var baseId = isoOf(id); if (!paths[baseId]) return;
     state.country = id; localStorage.setItem("fnc_country", id);
     Object.keys(paths).forEach(function (k) { paths[k].classList.toggle("selected", k === baseId); });
     var ping = pingOf(id);
     var html = '<img class="flag" src="' + flagUrl(baseId) + '" alt="" /> ' + nameOf(id, paths[baseId].getAttribute("data-name"));
     html += ping != null ? ' — пинг <b>&nbsp;' + ping + ' мс</b>' : '';
-    selectedLine.innerHTML = html;
-    updateFoot(); renderCard();
+    selectedLine.innerHTML = html; updateFoot(); renderCard();
   }
 
-  /* search */
   var search = $("#countrySearch");
   search.addEventListener("input", function () {
     var q = search.value.trim().toLowerCase();
@@ -151,7 +191,6 @@
     });
   });
 
-  /* region tabs */
   var placeholder = $("#mapPlaceholder");
   var regionNames = { "na-central": "NA Central", "na-west": "NA West", brazil: "Бразилия", asia: "Азия", me: "Ближний Восток", oce: "Океания" };
   $("#regionTabs").addEventListener("click", function (e) {
@@ -165,11 +204,7 @@
 
   /* ================= AVATAR ================= */
   var avInput = $("#avatarInput"), avBox = $("#avatarBox"), avImg = $("#avatarImg");
-  function setAvatar(url) {
-    state.avatar = url; avImg.src = url; avImg.hidden = false; avBox.classList.add("has-img");
-    try { localStorage.setItem("fnc_avatar", url); } catch (e) {}
-    renderCard();
-  }
+  function setAvatar(url) { state.avatar = url; avImg.src = url; avImg.hidden = false; avBox.classList.add("has-img"); try { localStorage.setItem("fnc_avatar", url); } catch (e) {} renderCard(); }
   avInput.addEventListener("change", function () {
     var f = avInput.files && avInput.files[0]; if (!f) return;
     var reader = new FileReader();
@@ -214,8 +249,7 @@
     if (state.role === "fragger") { v[0] += 7; v[3] += 6; v[2] -= 4; v[4] -= 2; }
     else if (state.role === "igl") { v[2] += 7; v[4] += 7; v[0] -= 4; v[1] += 2; }
     v = v.map(function (x) { return Math.max(30, Math.min(97, x)); });
-    var baseOvr = Math.round(v.reduce(function (a, b) { return a + b; }, 0) / 6);
-    var bonus = ageBonus(state.age);
+    var baseOvr = Math.round(v.reduce(function (a, b) { return a + b; }, 0) / 6), bonus = ageBonus(state.age);
     var overall = Math.max(30, Math.min(99, baseOvr + bonus));
     return { stats: v, baseOvr: baseOvr, bonus: bonus, overall: overall, rarity: rarityOf(overall), division: divOf(overall) };
   }
@@ -223,8 +257,7 @@
     var wrap = $("#pcardWrap");
     var ready = state.nick && state.nick.trim().length >= 2 && state.age && +state.age >= 10 && state.country;
     if (!ready) { wrap.innerHTML = '<div class="pcard-empty">Заполни ник, возраст и&nbsp;страну — соберём карточку игрока автоматически.</div>'; return; }
-    var s = buildStats();
-    var iso = isoOf(state.country);
+    var s = buildStats(), iso = isoOf(state.country);
     var pos = state.role === "fragger" ? "ФРГ" : state.role === "igl" ? "ИГЛ" : "—";
     var av = state.avatar ? '<img src="' + state.avatar + '" alt="">' : '<span class="noav">нет<br>фото</span>';
     var rows = STAT_KEYS.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + s.stats[i] + '</span><span class="s-bar"><i style="width:' + s.stats[i] + '%"></i></span></div>'; }).join("");
@@ -264,8 +297,13 @@
     localStorage.setItem("fnc_country_name", nameOf(state.country));
     localStorage.setItem("fnc_country_flag", isoOf(state.country));
     localStorage.setItem("fnc_overall", s.overall);
+    localStorage.setItem("fnc_base", s.baseOvr);
+    localStorage.setItem("fnc_bonus", s.bonus);
     localStorage.setItem("fnc_rarity", s.rarity.name);
+    localStorage.setItem("fnc_rarity_color", s.rarity.c);
     localStorage.setItem("fnc_division", s.division);
+    localStorage.setItem("fnc_stats", JSON.stringify({ keys: STAT_KEYS, vals: s.stats }));
+    localStorage.setItem("fnc_pos", state.role === "fragger" ? "ФРГ" : state.role === "igl" ? "ИГЛ" : "—");
     window.location.href = "next.html";
   });
 

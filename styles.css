@@ -2,20 +2,20 @@
    FNCS CAREER — Fortnite career site (static). Dark esports theme.
    =================================================================== */
 :root {
-  --bg: #070e24;
-  --bg2: #0a1636;
-  --panel: #0f1d45;
-  --panel2: #142a61;
-  --panel3: #1b336f;
-  --line: rgba(255, 255, 255, .10);
-  --line2: rgba(255, 255, 255, .20);
-  --ink: #eef3ff;
-  --muted: #9fb2dd;
-  --faint: #6c80b0;
+  --bg: #0f2a66;
+  --bg2: #16357e;
+  --panel: #17397e;
+  --panel2: #1c4596;
+  --panel3: #2657b0;
+  --line: rgba(255, 255, 255, .15);
+  --line2: rgba(255, 255, 255, .28);
+  --ink: #ffffff;
+  --muted: #c8d9f8;
+  --faint: #93b3ea;
   --accent: #ffd21a;
-  --accent-ink: #0a1430;
-  --cyan: #35e0cf;
-  --green: #30e08a;
+  --accent-ink: #12254c;
+  --cyan: #6fe0ff;
+  --green: #4fe3a0;
   --radius: 14px;
   --radius-lg: 20px;
   --shadow: 0 24px 60px -30px rgba(0, 0, 0, .8);
@@ -29,8 +29,8 @@ body {
   font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(53, 224, 207, .10), transparent 60%),
-    radial-gradient(1000px 700px at 10% 10%, rgba(255, 210, 26, .07), transparent 55%),
+    radial-gradient(1200px 560px at 50% -10%, rgba(130, 185, 255, .22), transparent 62%),
+    radial-gradient(900px 600px at 90% 0%, rgba(120, 170, 255, .12), transparent 60%),
     linear-gradient(180deg, var(--bg2), var(--bg));
   background-attachment: fixed;
   min-height: 100vh;
@@ -152,6 +152,14 @@ p { margin: 0; }
 .map-wrap .country:hover { fill: rgba(255, 255, 255, .16); }
 .map-wrap .country.dim { fill: rgba(5, 11, 30, .66); }
 .map-wrap .country.selected { fill: rgba(255, 210, 26, .32); stroke: var(--accent); stroke-width: 2.2; }
+.map-wrap { cursor: grab; touch-action: none; }
+.map-wrap.grabbing { cursor: grabbing; }
+.map-wrap svg { touch-action: none; }
+.ping-label.lbl-sm { opacity: 0; transition: opacity .15s; }
+.map-wrap svg.zoomed .ping-label.lbl-sm { opacity: 1; }
+.map-zoom { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 3; }
+.map-zoom button { width: 38px; height: 38px; display: grid; place-items: center; font-family: "Oswald"; font-size: 24px; line-height: 1; color: var(--ink); background: rgba(10, 24, 60, .85); border: 1px solid var(--line2); border-radius: 9px; cursor: pointer; transition: .15s; }
+.map-zoom button:hover { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .ping-label { font-family: "Oswald", sans-serif; font-weight: 700; fill: #fff; stroke: rgba(3, 8, 22, .92); paint-order: stroke; pointer-events: none; text-anchor: middle; dominant-baseline: central; }
 .map-hint { font-size: 12.5px; color: var(--faint); margin-top: 10px; }
 .selected-line { margin-top: 12px; font-family: "Oswald"; text-transform: uppercase; letter-spacing: .03em; font-size: 15px; color: var(--ink); display: flex; align-items: center; gap: 10px; min-height: 24px; }
@@ -296,3 +304,60 @@ p { margin: 0; }
   .profile-row { grid-template-columns: 1fr; }
   .avatar-col { max-width: 170px; margin: 0 auto; }
 }
+
+/* ===================== DASHBOARD (Центр) ===================== */
+.dash-wrap { padding: 18px 0 70px; }
+.player-bar { display: grid; grid-template-columns: auto 1fr auto; gap: 18px; align-items: center; background: linear-gradient(120deg, var(--panel2), var(--panel)); padding: 15px 20px; margin-bottom: 14px; clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px)); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .09); }
+.pb-id { display: flex; align-items: center; gap: 14px; }
+.pb-av { width: 62px; height: 62px; object-fit: cover; background: var(--panel3); border: 2px solid var(--accent); flex: none; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
+.pb-name h2 { font-family: "Oswald"; font-style: italic; font-size: 25px; text-transform: uppercase; line-height: 1; }
+.pb-meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-family: "Oswald"; text-transform: uppercase; font-size: 12.5px; letter-spacing: .04em; margin-top: 5px; }
+.pb-meta .flag { width: 22px; height: 15px; border-radius: 3px; object-fit: cover; border: 1px solid var(--line2); }
+.pb-mid { display: flex; align-items: center; gap: 22px; justify-content: center; flex-wrap: wrap; }
+.pb-rating { display: inline-flex; align-items: baseline; gap: 6px; background: var(--accent); color: var(--accent-ink); font-family: "Oswald"; font-weight: 700; padding: 7px 14px; clip-path: polygon(0 0, 100% 0, 100% 70%, 90% 100%, 0 100%); }
+.pb-rating b { font-size: 26px; line-height: 1; } .pb-rating span { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.pb-energy { min-width: 160px; } .pb-energy .k, .pb-bal .k { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--faint); letter-spacing: .06em; }
+.pb-energy .bar { height: 9px; background: rgba(0, 0, 0, .3); border-radius: 5px; overflow: hidden; margin-top: 5px; } .pb-energy .bar i { display: block; height: 100%; background: var(--accent); }
+.pb-bal b { font-family: "Oswald"; font-size: 20px; display: block; margin-top: 3px; }
+.pb-season { display: flex; gap: 18px; text-align: right; } .pb-season .c b { display: block; font-family: "Oswald"; font-size: 18px; } .pb-season .c span { font-size: 10.5px; color: var(--faint); text-transform: uppercase; font-family: "Oswald"; }
+
+.subnav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.subnav a { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .03em; font-size: 13.5px; color: var(--muted); padding: 9px 15px; border-radius: 9px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line); cursor: default; }
+.subnav a.active { background: #fff; color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+
+.dash { display: grid; grid-template-columns: 290px 1fr; gap: 16px; align-items: start; }
+.day-panel .d-date { font-family: "Oswald"; text-transform: uppercase; font-size: 13px; }
+.day-panel .d-sub { font-size: 12px; color: var(--muted); margin: 2px 0 16px; }
+.rings { display: flex; gap: 18px; justify-content: center; margin-bottom: 18px; }
+.ring { text-align: center; } .ring .rc { position: relative; width: 84px; height: 84px; margin: 0 auto; } .ring svg { width: 84px; height: 84px; transform: rotate(-90deg); } .ring .rv { position: absolute; inset: 0; display: grid; place-items: center; font-family: "Oswald"; font-weight: 700; font-size: 21px; } .ring .rk { font-size: 11px; color: var(--faint); text-transform: uppercase; font-family: "Oswald"; margin-top: 4px; }
+.train-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.train-cell { background: rgba(0, 0, 0, .22); border: 1px solid var(--line); border-radius: 10px; padding: 10px 6px; text-align: center; }
+.train-cell .tk { font-family: "Oswald"; font-size: 11px; color: var(--faint); text-transform: uppercase; }
+.train-cell .tv { font-family: "Oswald"; font-weight: 700; font-size: 20px; }
+.train-cell .tb { font-size: 10px; color: var(--green); font-family: "Oswald"; }
+
+.next-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+.next-head h3 { font-family: "Oswald"; font-style: italic; font-size: 21px; }
+.next-head .ssn { font-family: "Oswald"; text-transform: uppercase; font-size: 12px; color: var(--muted); }
+.season-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px; }
+.season-pills span { width: 22px; height: 20px; border-radius: 5px; display: grid; place-items: center; font-family: "Oswald"; font-size: 10px; color: rgba(255, 255, 255, .85); background: rgba(255, 255, 255, .09); }
+.season-pills span.ev { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.season-pills span.now { outline: 2px solid #fff; outline-offset: 1px; }
+.week-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.day-cell { background: rgba(0, 0, 0, .2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 8px; }
+.day-cell.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.day-cell.ev { background: rgba(255, 210, 26, .13); border-color: rgba(255, 210, 26, .55); }
+.day-cell .dow { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--faint); }
+.day-cell .dnum { font-family: "Oswald"; font-weight: 700; font-size: 22px; }
+.day-cell .dlbl { font-size: 11px; color: var(--muted); margin-top: 4px; min-height: 28px; line-height: 1.3; }
+.dash-main .pcard { margin: 0; }
+.dash-two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-top: 16px; }
+.event-big { display: flex; flex-direction: column; justify-content: center; }
+.event-big .eb-tag { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .1em; font-size: 11px; color: var(--accent); margin-bottom: 8px; }
+.event-big h4 { font-family: "Oswald"; font-style: italic; font-size: 24px; margin-bottom: 6px; }
+.event-big p { color: var(--muted); font-size: 13.5px; }
+.event-big .eb-when { margin-top: 14px; font-family: "Oswald"; text-transform: uppercase; font-size: 13px; color: var(--ink); }
+.event-big .eb-when b { color: var(--accent); }
+
+@media (max-width: 920px) { .dash { grid-template-columns: 1fr; } .player-bar { grid-template-columns: 1fr; gap: 14px; } .pb-mid { justify-content: flex-start; } .pb-season { text-align: left; } }
+@media (max-width: 620px) { .dash-two { grid-template-columns: 1fr; } .week-row { grid-template-columns: repeat(4, 1fr); } .train-grid { grid-template-columns: repeat(3, 1fr); } }

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Игрок создан — FNCS Career</title>
-  <meta name="theme-color" content="#070e24" />
+  <title>Центр карьеры — FNCS Career</title>
+  <meta name="theme-color" content="#0f2a66" />
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,33 +18,92 @@
         <span class="brand-mark">FN</span>
         <span class="brand-name">FNCS<span>&nbsp;CAREER</span></span>
       </a>
-      <span class="header-step">Шаг <b>2</b> / 3 · Игрок создан</span>
+      <nav class="header-nav">
+        <a href="index.html">Главная</a>
+        <a href="career.html">Изменить игрока</a>
+      </nav>
     </div>
   </header>
 
   <main>
-    <section class="summary">
+    <section class="dash-wrap">
       <div class="container">
-        <div class="summary-card">
-          <img class="sum-av" id="sumAv" alt="Аватар" />
-          <p class="eyebrow" style="font-family:'Oswald';text-transform:uppercase;letter-spacing:.14em;font-size:12px;color:var(--faint)">Игрок создан</p>
-          <h1>Добро пожаловать<span class="accent">!</span></h1>
-          <p class="sum-nick" id="sumNick">—</p>
-
-          <div class="sum-rows">
-            <div class="sum-row"><div class="k">Регион</div><div class="v"><img class="flag" id="sumFlag" alt="" /> <span id="sumCountry">—</span></div></div>
-            <div class="sum-row"><div class="k">Пинг</div><div class="v" id="sumPing">—</div></div>
-            <div class="sum-row"><div class="k">Позиция</div><div class="v" id="sumRole">—</div></div>
-            <div class="sum-row"><div class="k">Рейтинг</div><div class="v" id="sumOvr">—</div></div>
+        <!-- Player bar -->
+        <div class="player-bar">
+          <div class="pb-id">
+            <img class="pb-av" id="pbAv" alt="Аватар" />
+            <div class="pb-name">
+              <h2 id="pbNick">Игрок</h2>
+              <div class="pb-meta">
+                <span id="pbAge">—</span> · <span id="pbDiv">Дивизион —</span> · <span id="pbPos">—</span>
+                <img class="flag" id="pbFlag" alt="" />
+              </div>
+            </div>
           </div>
+          <div class="pb-mid">
+            <span class="pb-rating"><b id="pbRating">—</b><span>Рейтинг</span></span>
+            <div class="pb-energy"><div class="k">Энергия</div><div class="bar"><i style="width:100%"></i></div></div>
+            <div class="pb-bal"><div class="k">Баланс</div><b>$0</b></div>
+          </div>
+          <div class="pb-season">
+            <div class="c"><b>1</b><span>Сезон</span></div>
+            <div class="c"><b id="pbWeek">—</b><span>Неделя</span></div>
+            <div class="c"><b id="pbPing">—</b><span>Пинг</span></div>
+          </div>
+        </div>
 
-          <p class="sum-soon">Карьера запомнила твои данные. Дальше — выбор сезона, дивизионы и&nbsp;первые матчи FNCS. Эту часть доделаем следующей.</p>
+        <!-- Sub-nav (визуально) -->
+        <nav class="subnav">
+          <a class="active">Центр</a>
+          <a>Профиль</a>
+          <a>Карьера</a>
+          <a>Тренировка</a>
+          <a>Календарь</a>
+          <a>Таблицы</a>
+          <a>Магазин</a>
+          <a>История</a>
+        </nav>
 
-          <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
-            <a class="btn btn-ghost" href="career.html">Изменить игрока</a>
-            <a class="btn btn-primary" href="index.html">На главную
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-            </a>
+        <div class="dash">
+          <!-- Sidebar: день -->
+          <aside class="fcard day-panel">
+            <p class="panel-title">День</p>
+            <div class="d-date" id="dDate">—</div>
+            <div class="d-sub">Свободный день · идёт тренировка</div>
+            <div class="rings">
+              <div class="ring">
+                <div class="rc"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="8"/><circle id="ringE" cx="42" cy="42" r="36" fill="none" stroke="var(--green)" stroke-width="8" stroke-linecap="round"/></svg><span class="rv">100</span></div>
+                <div class="rk">Энергия</div>
+              </div>
+              <div class="ring">
+                <div class="rc"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="8"/><circle id="ringM" cx="42" cy="42" r="36" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round"/></svg><span class="rv" id="moodV">60</span></div>
+                <div class="rk">Настрой</div>
+              </div>
+            </div>
+            <p class="panel-title" style="margin-top:4px">Тренировки</p>
+            <div class="train-grid" id="trainGrid"></div>
+          </aside>
+
+          <!-- Main -->
+          <div class="dash-main">
+            <div class="fcard">
+              <div class="next-head">
+                <h3>Далее</h3>
+                <span class="ssn">Сезон в дуо · неделя <span id="weekNo">3</span></span>
+              </div>
+              <div class="season-pills" id="seasonPills"></div>
+              <div class="week-row" id="weekRow"></div>
+            </div>
+
+            <div class="dash-two">
+              <div id="dashCard"></div>
+              <div class="fcard event-big">
+                <span class="eb-tag">Ближайшее крупное событие</span>
+                <h4>Виктори Кап</h4>
+                <p>Games of the Future 2025 · Abu Dhabi. Победи в&nbsp;квалификации и&nbsp;пробейся на&nbsp;ЛАН.</p>
+                <div class="eb-when">Старт: <b id="ebDate">—</b></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -61,19 +120,74 @@
   <script>
     (function () {
       var g = function (k) { return localStorage.getItem(k) || ""; };
+      if (!g("fnc_nick")) { location.href = "career.html"; return; }
+      var MON = ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+      var DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
       var av = g("fnc_avatar");
-      var sumAv = document.getElementById("sumAv");
-      if (av) sumAv.src = av; else sumAv.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='%23152a60'/%3E%3C/svg%3E";
-      document.getElementById("sumNick").textContent = g("fnc_nick") || "Игрок";
+      document.getElementById("pbAv").src = av || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='62' height='62'%3E%3Crect width='62' height='62' fill='%232657b0'/%3E%3C/svg%3E";
+      document.getElementById("pbNick").textContent = g("fnc_nick");
+      document.getElementById("pbAge").textContent = (g("fnc_age") || "—") + " лет";
+      document.getElementById("pbDiv").textContent = "Дивизион " + (g("fnc_division") || "—");
+      document.getElementById("pbPos").textContent = g("fnc_pos") || "—";
       var cc = g("fnc_country_flag") || g("fnc_country").replace(/^ru-.*/, "ru");
-      if (cc) document.getElementById("sumFlag").src = "https://flagcdn.com/w320/" + cc + ".png";
-      document.getElementById("sumCountry").textContent = g("fnc_country_name") || "—";
-      var ping = g("fnc_ping");
-      document.getElementById("sumPing").textContent = ping !== "" ? ping + " мс" : "—";
-      var role = g("fnc_role");
-      document.getElementById("sumRole").textContent = role === "igl" ? "IGL (лидер)" : role === "fragger" ? "Фрагер" : "—";
-      var ovr = g("fnc_overall");
-      document.getElementById("sumOvr").textContent = ovr ? ovr + " · " + (g("fnc_rarity") || "") : "—";
+      if (cc) document.getElementById("pbFlag").src = "https://flagcdn.com/w320/" + cc + ".png";
+      document.getElementById("pbRating").textContent = g("fnc_overall") || "—";
+      var ping = g("fnc_ping"); document.getElementById("pbPing").textContent = ping !== "" ? ping : "—";
+
+      var today = new Date();
+      document.getElementById("pbWeek").textContent = today.getDate() + " " + MON[today.getMonth()];
+      document.getElementById("dDate").textContent = DOW[(today.getDay() + 6) % 7] + ", " + today.getDate() + " " + MON[today.getMonth()];
+
+      // rings
+      var C = 2 * Math.PI * 36;
+      function ring(el, p) { el.setAttribute("stroke-dasharray", (C * p / 100).toFixed(1) + " " + C.toFixed(1)); }
+      ring(document.getElementById("ringE"), 100);
+      var mood = 55 + (parseInt(g("fnc_overall"), 10) || 0) % 30; document.getElementById("moodV").textContent = mood; ring(document.getElementById("ringM"), mood);
+
+      // training stats
+      var st = { keys: ["Стрельба", "Стройка", "Ротации", "Клатч", "Гейм-IQ", "Стабильность"], vals: [60, 55, 55, 58, 57, 62] };
+      try { var p = JSON.parse(g("fnc_stats")); if (p && p.vals) st = p; } catch (e) {}
+      var SHORT = ["СТР", "СТРОЙ", "РОТ", "КЛЧ", "IQ", "СТБ"];
+      document.getElementById("trainGrid").innerHTML = st.vals.map(function (v, i) {
+        return '<div class="train-cell"><div class="tk">' + SHORT[i] + '</div><div class="tv">' + v + '</div><div class="tb">+0.5</div></div>';
+      }).join("");
+
+      // week
+      var dow = (today.getDay() + 6) % 7, monday = new Date(today); monday.setDate(today.getDate() - dow);
+      var evIdx = 3, html = "";
+      for (var i = 0; i < 7; i++) {
+        var d = new Date(monday); d.setDate(monday.getDate() + i);
+        var isNow = d.toDateString() === today.toDateString(), isEv = i === evIdx;
+        var lbl = isEv ? "Виктори Кап" : (isNow ? "Сегодня · свободно" : "Свободный день");
+        html += '<div class="day-cell' + (isNow ? " now" : "") + (isEv ? " ev" : "") + '"><div class="dow">' + DOW[i] + '</div><div class="dnum">' + d.getDate() + '</div><div class="dlbl">' + lbl + '</div></div>';
+        if (isEv) document.getElementById("ebDate").textContent = DOW[i] + ", " + d.getDate() + " " + MON[d.getMonth()];
+      }
+      document.getElementById("weekRow").innerHTML = html;
+
+      // season pills (1..50)
+      var evDays = { 9: 1, 18: 1, 27: 1, 36: 1 }, nowDay = 15, sp = "";
+      for (var n = 1; n <= 50; n++) sp += '<span class="' + (evDays[n] ? "ev" : "") + (n === nowDay ? " now" : "") + '">' + (evDays[n] ? "$" : n) + '</span>';
+      document.getElementById("seasonPills").innerHTML = sp;
+
+      // player card
+      var rar = g("fnc_rarity_color") || "#3fe07a";
+      var av2 = av ? '<img src="' + av + '" alt="">' : '<span class="noav">нет<br>фото</span>';
+      var rows = st.keys.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + st.vals[i] + '</span><span class="s-bar"><i style="width:' + st.vals[i] + '%"></i></span></div>'; }).join("");
+      document.getElementById("dashCard").innerHTML =
+        '<div class="pcard" style="--rar:' + rar + '">' +
+          '<div class="pcard-top"><div>' +
+            '<div class="pc-ovr">' + (g("fnc_overall") || "—") + '</div>' +
+            '<div class="pc-base">' + (g("fnc_base") || "") + ' <span>' + (g("fnc_bonus") >= 0 ? "+" : "") + (g("fnc_bonus") || "0") + '</span></div>' +
+            '<div><span class="pc-pos">' + (g("fnc_pos") || "—") + '</span></div>' +
+            '<div class="pc-region"><img class="flag" src="' + (cc ? "https://flagcdn.com/w320/" + cc + ".png" : "") + '" alt=""> Европа</div>' +
+          '</div><div class="pcard-av">' + av2 + '</div></div>' +
+          '<div class="pcard-nick">' + g("fnc_nick").replace(/[<>&]/g, "") + '</div>' +
+          '<div class="pcard-rarity">' + (g("fnc_rarity") || "") + '</div>' +
+          '<div class="pcard-stats">' + rows + '</div>' +
+          '<div class="pcard-div">FNCS · <b>Дивизион ' + (g("fnc_division") || "—") + '</b></div>' +
+        '</div>';
+
       document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });
     })();
   </script>
