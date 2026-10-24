@@ -169,17 +169,20 @@
     mw.addEventListener("wheel", function (e) {
       e.preventDefault(); var q = svgPoint(e); zoomAt(e.deltaY < 0 ? 0.82 : 1 / 0.82, q && q.x, q && q.y);
     }, { passive: false });
-    var drag = false, last = null, moved = 0;
-    svg.addEventListener("pointerdown", function (e) { drag = true; moved = 0; panned = false; last = svgPoint(e); try { svg.setPointerCapture(e.pointerId); } catch (x) {} });
-    svg.addEventListener("pointermove", function (e) {
-      if (!drag || !last) return; var q = svgPoint(e); if (!q) return;
-      var dx = q.x - last.x, dy = q.y - last.y; moved += Math.abs(dx) + Math.abs(dy);
-      view.x -= dx; view.y -= dy; clampView(); applyView();
-      if (moved > view.w * 0.02) { panned = true; mw.classList.add("grabbing"); }
-      last = svgPoint(e);
+    // NB: no setPointerCapture — it redirects the `click` to the <svg> and breaks
+    // per-country selection. Pan via client-px delta; `panned` suppresses the click only on real drags.
+    var drag = false, lastC = null, movedPx = 0;
+    svg.addEventListener("pointerdown", function (e) { drag = true; movedPx = 0; panned = false; lastC = { x: e.clientX, y: e.clientY }; });
+    window.addEventListener("pointermove", function (e) {
+      if (!drag || !lastC) return;
+      var dxp = e.clientX - lastC.x, dyp = e.clientY - lastC.y; movedPx += Math.abs(dxp) + Math.abs(dyp);
+      var r = svg.getBoundingClientRect(); if (!r.width) return;
+      view.x -= dxp * view.w / r.width; view.y -= dyp * view.h / r.height; clampView(); applyView();
+      lastC = { x: e.clientX, y: e.clientY };
+      if (movedPx > 6) { panned = true; mw.classList.add("grabbing"); }
     });
-    var end = function () { drag = false; last = null; mw.classList.remove("grabbing"); };
-    svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
+    var end = function () { drag = false; lastC = null; mw.classList.remove("grabbing"); };
+    window.addEventListener("pointerup", end); window.addEventListener("pointercancel", end);
   }
 
   var selectedLine = $("#selectedLine");

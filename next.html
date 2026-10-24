@@ -28,78 +28,18 @@
   <main>
     <section class="dash-wrap">
       <div class="container">
-        <!-- Player bar -->
-        <div class="player-bar">
-          <div class="pb-id">
-            <img class="pb-av" id="pbAv" alt="Аватар" />
-            <div class="pb-name">
-              <h2 id="pbNick">Игрок</h2>
-              <div class="pb-meta">
-                <span id="pbAge">—</span> · <span id="pbDiv">Дивизион —</span> · <span id="pbPos">—</span>
-                <img class="flag" id="pbFlag" alt="" />
-              </div>
-            </div>
-          </div>
-          <div class="pb-mid">
-            <span class="pb-rating"><b id="pbRating">—</b><span>Рейтинг</span></span>
-            <div class="pb-energy"><div class="k">Энергия</div><div class="bar"><i style="width:100%"></i></div></div>
-            <div class="pb-bal"><div class="k">Баланс</div><b>$0</b></div>
-          </div>
-          <div class="pb-season">
-            <div class="c"><b>1</b><span>Сезон</span></div>
-            <div class="c"><b id="pbWeek">—</b><span>Неделя</span></div>
-            <div class="c"><b id="pbPing">—</b><span>Пинг</span></div>
-          </div>
-        </div>
-
-        <!-- Sub-nav (визуально) -->
-        <nav class="subnav">
-          <a class="active">Центр</a>
-          <a>Профиль</a>
-          <a>Карьера</a>
-          <a>Тренировка</a>
-          <a>Календарь</a>
-          <a>Таблицы</a>
-          <a>Магазин</a>
-          <a>История</a>
+        <div id="playerBar"></div>
+        <nav class="subnav" id="subnav">
+          <button class="tab-btn active" data-tab="center">Центр</button>
+          <button class="tab-btn" data-tab="profile">Профиль</button>
+          <button class="tab-btn" data-tab="career">Карьера</button>
+          <button class="tab-btn" data-tab="training">Тренировка</button>
+          <button class="tab-btn" data-tab="calendar">Календарь</button>
+          <button class="tab-btn" data-tab="tables">Таблицы</button>
+          <button class="tab-btn" data-tab="shop">Магазин</button>
+          <button class="tab-btn" data-tab="history">История</button>
         </nav>
-
-        <div class="dash">
-          <!-- Sidebar: день -->
-          <aside class="fcard day-panel">
-            <p class="panel-title">День</p>
-            <div class="d-date" id="dDate">—</div>
-            <div class="d-sub">Свободный день · идёт тренировка</div>
-            <div class="rings">
-              <div class="ring">
-                <div class="rc"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="8"/><circle id="ringE" cx="42" cy="42" r="36" fill="none" stroke="var(--green)" stroke-width="8" stroke-linecap="round"/></svg><span class="rv">100</span></div>
-                <div class="rk">Энергия</div>
-              </div>
-              <div class="ring">
-                <div class="rc"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="8"/><circle id="ringM" cx="42" cy="42" r="36" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round"/></svg><span class="rv" id="moodV">60</span></div>
-                <div class="rk">Настрой</div>
-              </div>
-            </div>
-            <p class="panel-title" style="margin-top:4px">Тренировки</p>
-            <div class="train-grid" id="trainGrid"></div>
-            <p class="panel-title" style="margin-top:16px">Карточка игрока</p>
-            <div id="dashCardMini"></div>
-          </aside>
-
-          <!-- Main -->
-          <div class="dash-main">
-            <div class="fcard">
-              <div class="next-head">
-                <h3>Далее</h3>
-                <span class="ssn">Сезон в дуо · неделя <span id="weekNo">3</span></span>
-              </div>
-              <div class="season-pills" id="seasonPills"></div>
-              <div class="week-row" id="weekRow"></div>
-            </div>
-
-            <div class="fcard action-card" id="actionCard"></div>
-          </div>
-        </div>
+        <div id="tabContent"></div>
       </div>
     </section>
   </main>
@@ -111,94 +51,18 @@
     </div>
   </footer>
 
-  <script>
-    (function () {
-      var g = function (k) { return localStorage.getItem(k) || ""; };
-      if (!g("fnc_nick")) { location.href = "career.html"; return; }
-      var MON = ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
-      var DOW = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  <!-- Training minigame -->
+  <div class="tmodal" id="trainModal" hidden>
+    <div class="tmodal-back" data-close></div>
+    <div class="tmodal-card">
+      <div class="tm-head"><h3 id="tmTitle">Тренировка</h3><button class="tm-x" type="button" data-close>✕</button></div>
+      <p class="tm-desc" id="tmDesc">Лови цели как можно быстрее — чем больше попаданий, тем выше прирост.</p>
+      <div class="tm-hud"><span>Время: <b id="tmTime">15</b>с</span><span>Попадания: <b id="tmHits">0</b></span></div>
+      <div class="tm-zone" id="tmZone"><button class="tm-start" id="tmStart" type="button">Начать</button></div>
+      <div class="tm-result" id="tmResult" hidden></div>
+    </div>
+  </div>
 
-      var av = g("fnc_avatar");
-      document.getElementById("pbAv").src = av || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='62' height='62'%3E%3Crect width='62' height='62' fill='%232657b0'/%3E%3C/svg%3E";
-      document.getElementById("pbNick").textContent = g("fnc_nick");
-      document.getElementById("pbAge").textContent = (g("fnc_age") || "—") + " лет";
-      document.getElementById("pbDiv").textContent = "Дивизион " + (g("fnc_division") || "—");
-      document.getElementById("pbPos").textContent = g("fnc_pos") || "—";
-      var cc = g("fnc_country_flag") || g("fnc_country").replace(/^ru-.*/, "ru");
-      if (cc) document.getElementById("pbFlag").src = "https://flagcdn.com/w320/" + cc + ".png";
-      document.getElementById("pbRating").textContent = g("fnc_overall") || "—";
-      var ping = g("fnc_ping"); document.getElementById("pbPing").textContent = ping !== "" ? ping : "—";
-
-      var today = new Date();
-      document.getElementById("pbWeek").textContent = today.getDate() + " " + MON[today.getMonth()];
-      document.getElementById("dDate").textContent = DOW[(today.getDay() + 6) % 7] + ", " + today.getDate() + " " + MON[today.getMonth()];
-
-      // rings
-      var C = 2 * Math.PI * 36;
-      function ring(el, p) { el.setAttribute("stroke-dasharray", (C * p / 100).toFixed(1) + " " + C.toFixed(1)); }
-      ring(document.getElementById("ringE"), 100);
-      var mood = 55 + (parseInt(g("fnc_overall"), 10) || 0) % 30; document.getElementById("moodV").textContent = mood; ring(document.getElementById("ringM"), mood);
-
-      // training stats
-      var st = { keys: ["Стрельба", "Стройка", "Ротации", "Клатч", "Гейм-IQ", "Стабильность"], vals: [60, 55, 55, 58, 57, 62] };
-      try { var p = JSON.parse(g("fnc_stats")); if (p && p.vals) st = p; } catch (e) {}
-      var SHORT = ["СТР", "СТРОЙ", "РОТ", "КЛЧ", "IQ", "СТБ"];
-      document.getElementById("trainGrid").innerHTML = st.vals.map(function (v, i) {
-        return '<div class="train-cell"><div class="tk">' + SHORT[i] + '</div><div class="tv">' + v + '</div><div class="tb">+0.5</div></div>';
-      }).join("");
-
-      // week
-      var dow = (today.getDay() + 6) % 7, monday = new Date(today); monday.setDate(today.getDate() - dow);
-      var evIdx = 3, html = "", evDateStr = "—", todayIsEvent = false;
-      for (var i = 0; i < 7; i++) {
-        var d = new Date(monday); d.setDate(monday.getDate() + i);
-        var isNow = d.toDateString() === today.toDateString(), isEv = i === evIdx;
-        var lbl = isEv ? "Виктори Кап" : (isNow ? "Сегодня · свободно" : "Свободный день");
-        html += '<div class="day-cell' + (isNow ? " now" : "") + (isEv ? " ev" : "") + '"><div class="dow">' + DOW[i] + '</div><div class="dnum">' + d.getDate() + '</div><div class="dlbl">' + lbl + '</div></div>';
-        if (isEv) { evDateStr = DOW[i] + ", " + d.getDate() + " " + MON[d.getMonth()]; if (isNow) todayIsEvent = true; }
-      }
-      document.getElementById("weekRow").innerHTML = html;
-
-      // season pills (1..50)
-      var evDays = { 9: 1, 18: 1, 27: 1, 36: 1 }, nowDay = 15, sp = "";
-      for (var n = 1; n <= 50; n++) sp += '<span class="' + (evDays[n] ? "ev" : "") + (n === nowDay ? " now" : "") + '">' + (evDays[n] ? "$" : n) + '</span>';
-      document.getElementById("seasonPills").innerHTML = sp;
-
-      // player card — компактная, в сайдбаре под тренировками
-      var rar = g("fnc_rarity_color") || "#3fe07a";
-      var av2 = av ? '<img src="' + av + '" alt="">' : '<span class="noav">нет<br>фото</span>';
-      var rows = st.keys.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + st.vals[i] + '</span><span class="s-bar"><i style="width:' + st.vals[i] + '%"></i></span></div>'; }).join("");
-      document.getElementById("dashCardMini").innerHTML =
-        '<div class="pcard mini" style="--rar:' + rar + '">' +
-          '<div class="pcard-top"><div>' +
-            '<div class="pc-ovr">' + (g("fnc_overall") || "—") + '</div>' +
-            '<div class="pc-base">' + (g("fnc_base") || "") + ' <span>' + (g("fnc_bonus") >= 0 ? "+" : "") + (g("fnc_bonus") || "0") + '</span></div>' +
-            '<div><span class="pc-pos">' + (g("fnc_pos") || "—") + '</span></div>' +
-          '</div><div class="pcard-av">' + av2 + '</div></div>' +
-          '<div class="pcard-nick">' + g("fnc_nick").replace(/[<>&]/g, "") + '</div>' +
-          '<div class="pcard-rarity">' + (g("fnc_rarity") || "") + '</div>' +
-          '<div class="pcard-stats">' + rows + '</div>' +
-          '<div class="pcard-div">FNCS · <b>Дивизион ' + (g("fnc_division") || "—") + '</b></div>' +
-        '</div>';
-
-      // action — турнир / тренировка (как на FNCS Draft)
-      var ar = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>';
-      var acHtml;
-      if (todayIsEvent) {
-        acHtml = '<span class="ac-tag ac-live">Турнир сегодня</span><h3>Виктори Кап</h3>' +
-          '<p>Games of the Future 2025 · Abu Dhabi. Победи в&nbsp;квалификации и&nbsp;пробейся на&nbsp;ЛАН.</p>' +
-          '<button class="btn btn-primary btn-lg" type="button">Играть турнир ' + ar + '</button>';
-      } else {
-        acHtml = '<span class="ac-tag">Свободный день</span><h3>Тренировка</h3>' +
-          '<p>Турнира сегодня нет — качай статы на&nbsp;тренировке. Выбери занятие и&nbsp;жми «Тренироваться».</p>' +
-          '<div class="train-opts"><span class="sel">Скримы</span><span>Аим-тренировка</span><span>Разбор игр</span><span>Отдых</span></div>' +
-          '<button class="btn btn-primary btn-lg" type="button">Тренироваться ' + ar + '</button>' +
-          '<div class="ac-next">Ближайший турнир: <b>Виктори Кап</b> · ' + evDateStr + '</div>';
-      }
-      document.getElementById("actionCard").innerHTML = acHtml;
-
-      document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });
-    })();
-  </script>
+  <script src="dashboard.js"></script>
 </body>
 </html>
