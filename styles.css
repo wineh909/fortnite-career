@@ -454,7 +454,19 @@ p { margin: 0; }
 .tm-result { text-align: center; padding-top: 14px; }
 .tm-res-big { font-family: "Oswald"; font-weight: 700; font-size: 30px; color: var(--accent); }
 .tm-res-gains { font-family: "Oswald"; text-transform: uppercase; color: var(--green); margin: 6px 0; }
+.tm-res-up { font-family: "Oswald"; text-transform: uppercase; font-weight: 700; color: var(--accent); margin: 2px 0 6px; }
+.tm-res-up.muted { color: var(--faint); font-weight: 600; }
 .tm-res-ovr { color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+/* edit minigame grid (Fortnite-style wall edit) */
+.tm-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; width: 240px; height: 240px; }
+.tm-cell { border: 2px solid rgba(255, 255, 255, .14); border-radius: 10px; background: rgba(255, 255, 255, .05); cursor: pointer; transition: transform .05s, background .1s, border-color .1s, box-shadow .1s; }
+.tm-cell:active { transform: scale(.95); }
+.tm-cell.hot { border-color: var(--cyan); background: rgba(70, 182, 255, .18); box-shadow: 0 0 12px rgba(70, 182, 255, .45) inset, 0 0 8px rgba(70, 182, 255, .35); }
+.tm-cell.done { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 14px rgba(255, 210, 26, .55); }
+/* xp progress line under a stat bar */
+.pc-row .s-bar { position: relative; }
+.pc-row .s-bar u.s-xp { position: absolute; left: 0; bottom: 0; height: 2px; background: var(--accent); border-radius: 2px; }
+.pt-note { font-family: "Inter"; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11px; color: var(--faint); }
 
 .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 140%); z-index: 90; background: #15316e; border: 1px solid var(--line2); color: var(--ink); font-weight: 600; padding: 13px 20px; border-radius: 12px; box-shadow: var(--shadow); transition: transform .4s var(--ease); max-width: 90vw; text-align: center; }
 .toast.show { transform: translate(-50%, 0); }

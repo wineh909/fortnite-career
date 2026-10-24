@@ -17,6 +17,7 @@
     countryName: g("fnc_country_name") || "—", ping: g("fnc_ping") || "—",
     pos: g("fnc_pos") || "—", role: g("fnc_role") || "",
     stats: (function () { try { var p = JSON.parse(g("fnc_stats")); if (p && p.vals && p.vals.length === 6) return p.vals.map(Number); } catch (e) {} return [55, 55, 55, 55, 55, 55]; })(),
+    xp: (function () { try { var p = JSON.parse(g("fnc_statxp")); if (p && p.length === 6) return p.map(Number); } catch (e) {} return [0, 0, 0, 0, 0, 0]; })(),
     energy: numk("fnc_energy", 100), mood: numk("fnc_mood", 62)
   };
   var flagUrl = function (iso) { return "https://flagcdn.com/w320/" + iso + ".png"; };
@@ -32,7 +33,9 @@
     localStorage.setItem("fnc_bonus", ageBonus(P.age)); localStorage.setItem("fnc_rarity", rarityOf(o).n);
     localStorage.setItem("fnc_rarity_color", rarityOf(o).c); localStorage.setItem("fnc_division", divOf(o));
     localStorage.setItem("fnc_energy", P.energy); localStorage.setItem("fnc_mood", P.mood);
+    localStorage.setItem("fnc_statxp", JSON.stringify(P.xp));
   }
+  var XP_PER = 100; // опыта на +1 к стату
 
   var today = new Date();
   function fmtD(d) { return DOW[(d.getDay() + 6) % 7] + ", " + d.getDate() + " " + MON[d.getMonth()]; }
@@ -149,10 +152,10 @@
         '<span class="drill-stat">' + (dr.id === "rest" ? "+ энергия" : "+ " + dr.stats.map(function (i) { return SHORT[i]; }).join(" · ")) + '</span></button>';
     }).join("");
     return '<div class="fcard"><p class="panel-title">Тренировка</p><h3 class="blk-h">Качай навыки</h3>' +
-      '<p class="blk-sub">Выбери занятие и&nbsp;пройди мини-игру — попадай по&nbsp;целям, и&nbsp;статы вырастут. Энергия: <b>' + P.energy + '%</b>.</p>' +
+      '<p class="blk-sub">Выбери занятие и&nbsp;пройди короткую мини-игру (5&nbsp;сек). За&nbsp;попадания капает опыт — статы растут не&nbsp;сразу (≈10&nbsp;тренировок = +1 к&nbsp;рейтингу). Энергия: <b>' + P.energy + '%</b>.</p>' +
       '<div class="drill-grid">' + cards + '</div></div>' +
-      '<div class="fcard"><p class="panel-title">Текущие статы</p><div class="pcard-stats big-stats">' +
-      STAT_KEYS.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + P.stats[i] + '</span><span class="s-bar"><i style="--rar:var(--cyan);width:' + P.stats[i] + '%;background:var(--cyan)"></i></span></div>'; }).join("") + '</div></div>';
+      '<div class="fcard"><p class="panel-title">Текущие статы <span class="pt-note">(тонкая полоса — опыт до +1)</span></p><div class="pcard-stats big-stats">' +
+      STAT_KEYS.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + P.stats[i] + '</span><span class="s-bar"><i style="width:' + P.stats[i] + '%;background:var(--cyan)"></i><u class="s-xp" style="width:' + Math.round(P.xp[i]) + '%"></u></span></div>'; }).join("") + '</div></div>';
   }
 
   /* ---------- tab: Календарь ---------- */
@@ -195,15 +198,19 @@
 
   /* ---------- training minigame ---------- */
   var DRILLS = [
-    { id: "aim", name: "Аим-тренировка", stats: [0, 3], desc: "Лови цели как можно быстрее — качает Стрельбу и Клатч." },
-    { id: "build", name: "Стройка", stats: [1, 3], desc: "Жми по целям на скорость — качает Стройку и Клатч." },
-    { id: "scrim", name: "Скримы", stats: [0, 1, 2, 3, 4, 5], desc: "Матч-режим — понемногу качает все статы." },
-    { id: "review", name: "Разбор игр", stats: [2, 4], desc: "Лови ключевые моменты — качает Ротации и Гейм-IQ." },
-    { id: "rest", name: "Отдых", stats: [], desc: "Восстанавливает энергию и настрой." }
+    { id: "aim", name: "Аим-тренировка", mode: "aim", xpMult: 3, stats: [0, 3], desc: "Лови цели как можно быстрее — качает Стрельбу и Клатч." },
+    { id: "build", name: "Стройка / Эдит", mode: "edit", xpMult: 4, stats: [1, 3], desc: "Редачь стенку: жми подсвеченные ячейки, собирай правки на скорость — качает Стройку и Клатч." },
+    { id: "scrim", name: "Скримы", mode: "aim", xpMult: 1, stats: [0, 1, 2, 3, 4, 5], desc: "Матч-режим — понемногу качает все статы." },
+    { id: "review", name: "Разбор игр", mode: "aim", xpMult: 3, stats: [2, 4], desc: "Лови ключевые моменты — качает Ротации и Гейм-IQ." },
+    { id: "rest", name: "Отдых", mode: "rest", xpMult: 0, stats: [], desc: "Восстанавливает энергию и настрой." }
   ];
   var modal = $("#trainModal"), tmZone = $("#tmZone"), tmTime = $("#tmTime"), tmHits = $("#tmHits"), tmResult = $("#tmResult"), tmStart = $("#tmStart");
-  var gameTimer = null, hits = 0, timeLeft = 15, curDrill = null;
-  function closeModal() { modal.hidden = true; if (gameTimer) { clearInterval(gameTimer); gameTimer = null; } }
+  var GAME_SECS = 5;
+  var gameTimer = null, hits = 0, timeLeft = GAME_SECS, curDrill = null;
+  var editGrid = null, hotSet = {}, hotCount = 0, doneCount = 0;
+  function setHudLabel(txt) { var l = $("#tmHitsLabel"); if (l) l.textContent = txt; }
+  function clearZone() { tmZone.querySelectorAll(".tm-target, .tm-grid").forEach(function (t) { t.remove(); }); editGrid = null; }
+  function closeModal() { modal.hidden = true; if (gameTimer) { clearInterval(gameTimer); gameTimer = null; } clearZone(); }
   Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (el) { el.addEventListener("click", closeModal); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) closeModal(); });
 
@@ -215,43 +222,81 @@
       flash("Ты отдохнул — энергия 100%, настрой +20.");
       return;
     }
-    if (P.energy < 15) { flash("Мало энергии. Сначала отдохни."); return; }
+    if (P.energy < 12) { flash("Мало энергии. Сначала отдохни."); return; }
     $("#tmTitle").textContent = dr.name;
-    $("#tmDesc").textContent = dr.desc + " Жми по целям!";
+    $("#tmDesc").textContent = dr.desc + (dr.mode === "edit" ? " Жми подсвеченные ячейки!" : " Жми по целям!");
+    setHudLabel(dr.mode === "edit" ? "Правок" : "Попаданий");
     tmResult.hidden = true; tmStart.hidden = false; tmStart.textContent = "Начать";
-    tmZone.querySelectorAll(".tm-target").forEach(function (t) { t.remove(); });
-    hits = 0; timeLeft = 15; tmHits.textContent = "0"; tmTime.textContent = "15";
+    clearZone();
+    hits = 0; timeLeft = GAME_SECS; tmHits.textContent = "0"; tmTime.textContent = GAME_SECS;
     modal.hidden = false;
   }
   tmStart.addEventListener("click", startGame);
+
+  /* ---- aim mode: hit moving targets ---- */
   function spawn() {
     tmZone.querySelectorAll(".tm-target").forEach(function (t) { t.remove(); });
     var t = document.createElement("button"); t.className = "tm-target"; t.type = "button";
     var sz = 46, pad = 6, w = tmZone.clientWidth - sz - pad * 2, h = tmZone.clientHeight - sz - pad * 2;
     t.style.left = (pad + Math.random() * Math.max(0, w)) + "px";
     t.style.top = (pad + Math.random() * Math.max(0, h)) + "px";
-    t.addEventListener("pointerdown", function (e) { e.preventDefault(); hits++; tmHits.textContent = hits; spawn(); });
+    t.addEventListener("pointerdown", function (e) { e.preventDefault(); if (!gameTimer) return; hits++; tmHits.textContent = hits; spawn(); });
     tmZone.appendChild(t);
   }
+
+  /* ---- edit mode: Fortnite-style wall edit — press the highlighted cells ---- */
+  function buildEditGrid() {
+    clearZone();
+    var grid = document.createElement("div"); grid.className = "tm-grid";
+    for (var i = 0; i < 9; i++) {
+      var c = document.createElement("button"); c.type = "button"; c.className = "tm-cell"; c.setAttribute("data-i", i);
+      c.addEventListener("pointerdown", onEditCell); grid.appendChild(c);
+    }
+    tmZone.appendChild(grid); editGrid = grid; newEditRound();
+  }
+  function newEditRound() {
+    if (!editGrid) return;
+    var cells = editGrid.querySelectorAll(".tm-cell");
+    cells.forEach(function (c) { c.classList.remove("hot", "done"); });
+    var n = 2 + Math.floor(Math.random() * 3), idx = []; // подсветить 2..4 ячейки
+    while (idx.length < n) { var r = Math.floor(Math.random() * 9); if (idx.indexOf(r) < 0) idx.push(r); }
+    hotSet = {}; idx.forEach(function (r) { cells[r].classList.add("hot"); hotSet[r] = true; });
+    hotCount = n; doneCount = 0;
+  }
+  function onEditCell(e) {
+    e.preventDefault(); if (!gameTimer) return;
+    var c = e.currentTarget, i = +c.getAttribute("data-i");
+    if (hotSet[i] && !c.classList.contains("done")) {
+      c.classList.add("done"); doneCount++;
+      if (doneCount >= hotCount) { hits++; tmHits.textContent = hits; newEditRound(); }
+    }
+  }
+
   function startGame() {
-    tmStart.hidden = true; tmResult.hidden = true; hits = 0; timeLeft = 15; tmHits.textContent = "0"; tmTime.textContent = "15";
-    spawn();
+    tmStart.hidden = true; tmResult.hidden = true; hits = 0; timeLeft = GAME_SECS; tmHits.textContent = "0"; tmTime.textContent = GAME_SECS;
+    if (curDrill.mode === "edit") buildEditGrid(); else { clearZone(); spawn(); }
     gameTimer = setInterval(function () {
       timeLeft--; tmTime.textContent = timeLeft;
       if (timeLeft <= 0) { clearInterval(gameTimer); gameTimer = null; endGame(); }
     }, 1000);
   }
   function endGame() {
-    tmZone.querySelectorAll(".tm-target").forEach(function (t) { t.remove(); });
+    clearZone();
     var oOld = overallOf();
-    var gain = Math.max(1, Math.round(hits / 5));
-    var changed = [];
-    curDrill.stats.forEach(function (i) { var old = P.stats[i]; P.stats[i] = Math.min(99, P.stats[i] + gain); if (P.stats[i] !== old) changed.push(SHORT[i] + " +" + (P.stats[i] - old)); });
-    P.energy = Math.max(0, P.energy - 18); P.mood = Math.min(100, P.mood + 3);
+    var gx = Math.min(50, Math.max(1, Math.round(hits * (curDrill.xpMult || 2)))); // очень мало + потолок: ~10 тренировок = +1 к рейтингу
+    var ups = [], gains = [];
+    curDrill.stats.forEach(function (i) {
+      P.xp[i] += gx; gains.push(SHORT[i] + " +" + gx);
+      while (P.xp[i] >= XP_PER && P.stats[i] < 99) { P.stats[i]++; P.xp[i] -= XP_PER; ups.push(SHORT[i] + " +1"); }
+      if (P.stats[i] >= 99) P.xp[i] = 0;
+    });
+    P.energy = Math.max(0, P.energy - 10); P.mood = Math.min(100, P.mood + 3);
     save(); var oNew = overallOf();
+    var scoreLbl = curDrill.mode === "edit" ? " правок" : " попаданий";
     tmResult.hidden = false;
-    tmResult.innerHTML = '<div class="tm-res-big">' + hits + ' попаданий</div>' +
-      '<div class="tm-res-gains">' + (changed.length ? changed.join(" · ") : "без прироста") + '</div>' +
+    tmResult.innerHTML = '<div class="tm-res-big">' + hits + scoreLbl + '</div>' +
+      '<div class="tm-res-gains">' + gains.join(" · ") + ' опыта</div>' +
+      (ups.length ? '<div class="tm-res-up">⬆ ' + ups.join(" · ") + '</div>' : '<div class="tm-res-up muted">копи опыт — статы растут не сразу</div>') +
       '<div class="tm-res-ovr">Рейтинг: ' + oOld + ' → <b>' + oNew + '</b> · Энергия: ' + P.energy + '%</div>' +
       '<button class="btn btn-primary" type="button" id="tmAgain">Готово</button>';
     $("#tmAgain").addEventListener("click", function () { closeModal(); buildBar(); setTab(cur); });
