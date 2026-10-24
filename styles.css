@@ -514,4 +514,75 @@ p { margin: 0; }
 .toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 140%); z-index: 90; background: #15316e; border: 1px solid var(--line2); color: var(--ink); font-weight: 600; padding: 13px 20px; border-radius: 12px; box-shadow: var(--shadow); transition: transform .4s var(--ease); max-width: 90vw; text-align: center; }
 .toast.show { transform: translate(-50%, 0); }
 
+/* ===================== landing: two mode cards ===================== */
+.modes-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; align-items: start; }
+.mode-feature .fcard-tag.tag-alt { color: var(--accent); background: rgba(255, 210, 26, .1); border-color: rgba(255, 210, 26, .32); }
+.mode-draft::before { background: linear-gradient(90deg, var(--cyan), var(--accent)); }
+
+/* ===================== FNCS Draft page ===================== */
+.draft-wrap { padding: 40px 0 60px; }
+.draft-head { text-align: center; max-width: 720px; margin: 0 auto 26px; }
+.draft-head h1 { font-family: "Oswald"; font-weight: 700; font-style: italic; text-transform: uppercase; font-size: clamp(30px, 5vw, 48px); line-height: 1.02; }
+.draft-head h1 em { color: var(--accent); font-style: italic; }
+.draft-head p { color: var(--muted); margin-top: 12px; font-size: 15px; }
+
+.draft-setup { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.ds-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.ds-lbl { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .07em; font-size: 12px; color: var(--faint); min-width: 64px; }
+.dpills { display: flex; flex-wrap: wrap; gap: 8px; }
+.dpill { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .03em; font-size: 13px; color: var(--ink2); background: rgba(255, 255, 255, .05); border: 1px solid var(--line2); border-radius: 9px; padding: 8px 14px; cursor: pointer; transition: .14s; }
+.dpill:hover { border-color: var(--cyan); }
+.dpill.active { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.ds-note { font-size: 13px; color: var(--muted); } .ds-note b { color: var(--accent); }
+
+.draft-grid { display: grid; grid-template-columns: 340px 1fr; gap: 22px; align-items: start; }
+.team-panel { position: sticky; top: 16px; }
+
+/* team panel */
+.tp-card { display: flex; flex-direction: column; gap: 14px; }
+.tp-power { background: rgba(0, 0, 0, .22); border: 1px solid var(--line2); border-radius: 12px; padding: 14px; text-align: center; }
+.tpw-big b { font-family: "Oswald"; font-weight: 700; font-size: 44px; line-height: 1; color: var(--accent); }
+.tpw-big span { display: block; font-family: "Oswald"; text-transform: uppercase; font-size: 11px; letter-spacing: .06em; color: var(--faint); margin-top: 2px; }
+.tpw-sub { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+.tp-slots { display: flex; flex-direction: column; gap: 10px; }
+.tp-slot { display: flex; align-items: center; gap: 12px; border-radius: 11px; padding: 10px 12px; min-height: 58px; }
+.tp-slot.empty { border: 1.5px dashed var(--line2); background: rgba(0, 0, 0, .15); flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
+.tp-slot.empty span { font-family: "Oswald"; text-transform: uppercase; font-size: 13px; color: var(--ink2); }
+.tp-slot.empty small { color: var(--faint); font-size: 11.5px; }
+.tp-slot.filled { border: 1px solid var(--rar); background: linear-gradient(100deg, color-mix(in srgb, var(--rar) 16%, transparent), rgba(255, 255, 255, .03)); }
+.tp-ov { font-family: "Oswald"; font-weight: 700; font-size: 26px; color: var(--rar); min-width: 40px; text-align: center; }
+.tp-info { flex: 1; } .tp-info b { display: block; font-family: "Oswald"; font-size: 16px; } .tp-info span { font-size: 12px; color: var(--muted); }
+.tp-x { background: none; border: none; color: var(--faint); font-size: 16px; cursor: pointer; padding: 4px; } .tp-x:hover { color: #ff8080; }
+.tp-cap .tpc-head { display: flex; justify-content: space-between; font-family: "Oswald"; text-transform: uppercase; font-size: 12px; color: var(--faint); margin-bottom: 6px; }
+.tp-cap .tpc-head b { color: var(--ink); } .tp-cap .tpc-head b.over { color: #ff7a7a; }
+.tpc-bar { height: 9px; background: rgba(0, 0, 0, .3); border-radius: 6px; overflow: hidden; } .tpc-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--accent)); transition: width .2s; }
+.tp-syn { display: flex; flex-wrap: wrap; gap: 6px; }
+.syn-tag { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; letter-spacing: .03em; color: var(--green); background: rgba(63, 224, 122, .12); border: 1px solid rgba(63, 224, 122, .3); border-radius: 7px; padding: 4px 9px; }
+.syn-tag.neg { color: #ff9a9a; background: rgba(255, 110, 110, .1); border-color: rgba(255, 110, 110, .3); }
+.syn-tag.muted { color: var(--faint); background: rgba(255, 255, 255, .04); border-color: var(--line2); }
+
+/* pool */
+.pool-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.pool-search { flex: 1; min-width: 180px; background: rgba(0, 0, 0, .25); border: 1px solid var(--line2); border-radius: 10px; padding: 11px 14px; color: var(--ink); font-family: "Inter"; font-size: 14px; }
+.pool-search::placeholder { color: var(--faint); }
+.pool-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.pool-filters select { background: rgba(0, 0, 0, .25); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 12px; color: var(--ink); font-family: "Oswald"; font-size: 13px; cursor: pointer; }
+.pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 12px; }
+.pool-empty { grid-column: 1 / -1; text-align: center; color: var(--faint); padding: 40px; }
+.dcard { background: linear-gradient(165deg, color-mix(in srgb, var(--rar) 14%, var(--panel2)), var(--panel)); border: 1px solid color-mix(in srgb, var(--rar) 45%, var(--line2)); border-radius: 13px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.dcard.picked { outline: 2px solid var(--accent); }
+.dc-top { display: flex; justify-content: space-between; align-items: baseline; }
+.dc-ov { font-family: "Oswald"; font-weight: 700; font-size: 30px; color: var(--rar); line-height: 1; }
+.dc-cost { font-family: "Oswald"; font-weight: 700; font-size: 15px; color: var(--accent); }
+.dc-name { font-family: "Oswald"; font-weight: 600; font-size: 18px; text-transform: uppercase; letter-spacing: .02em; }
+.dc-meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; } .dc-meta .flag { width: 18px; height: 12px; border-radius: 2px; object-fit: cover; }
+.dc-rar { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; color: var(--rar); }
+.dc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px 6px; font-family: "Oswald"; font-size: 11px; color: var(--ink2); margin: 2px 0 4px; }
+.dc-btn { margin-top: auto; font-family: "Oswald"; text-transform: uppercase; font-size: 13px; font-weight: 600; border: none; border-radius: 9px; padding: 9px; cursor: pointer; transition: .14s; }
+.dc-btn.add { background: var(--accent); color: var(--accent-ink); } .dc-btn.add:hover { filter: brightness(1.08); }
+.dc-btn.add.off { background: rgba(255, 255, 255, .06); color: var(--faint); cursor: not-allowed; }
+.dc-btn.remove { background: rgba(255, 110, 110, .14); color: #ff9a9a; border: 1px solid rgba(255, 110, 110, .3); }
+
+@media (max-width: 920px) { .draft-grid { grid-template-columns: 1fr; } .team-panel { position: static; } }
+@media (max-width: 760px) { .modes-grid { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .two-col { grid-template-columns: 1fr; } .ladder { grid-template-columns: repeat(4, 1fr); } }

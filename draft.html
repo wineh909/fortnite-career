@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FNCS Draft — собери состав про-игроков</title>
+  <meta name="description" content="Собери ростер про-игроков под зарплатный кэп, посчитай силу и синергию команды и выиграй симуляцию турнира." />
+  <meta name="theme-color" content="#0f2a66" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:ital,wght@0,500;0,600;0,700;1,600;1,700&family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">FN</span>
+        <span class="brand-name">FNCS<span>&nbsp;CAREER</span></span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">Главная</a>
+        <a href="career.html">Карьера</a>
+        <a href="draft.html" class="active">Драфт</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="draft-wrap">
+      <div class="container">
+        <div class="draft-head">
+          <span class="hero-badge">◆ FNCS Draft</span>
+          <h1>Собери <em>состав</em> и выиграй турнир</h1>
+          <p>Выбери формат и&nbsp;регион, набери ростер под&nbsp;кэп, посчитай силу и&nbsp;синергию — и&nbsp;симулируй турнир команд.</p>
+        </div>
+
+        <div class="fcard draft-setup" id="draftSetup"></div>
+
+        <div class="draft-grid">
+          <aside class="team-panel" id="teamPanel"></aside>
+          <div class="pool-wrap">
+            <div class="fcard pool-controls" id="poolControls"></div>
+            <div class="pool-grid" id="poolGrid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <span>© <span data-year>2026</span> FNCS Career — фан-проект. Не связан с Epic Games.</span>
+      <span>Демо-версия · без бэкенда</span>
+    </div>
+  </footer>
+
+  <!-- Tournament result -->
+  <div class="tmodal" id="tourModal" hidden>
+    <div class="tmodal-back" data-tclose></div>
+    <div class="tmodal-card tour-card">
+      <div class="tm-head"><h3 id="tourTitle">Турнир</h3><button class="tm-x" type="button" data-tclose>✕</button></div>
+      <div id="tourBody"></div>
+    </div>
+  </div>
+
+  <script src="draft.js"></script>
+</body>
+</html>
