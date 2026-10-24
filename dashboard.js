@@ -410,23 +410,56 @@
     for (t = 6; t <= 25; t++) if (place <= t) p += 2;
     return p;
   }
-  function simulate(lobby, games) {
-    var me = overallOf(), N = lobby, skill = [me];
+  // пошаговый симулятор: лобби считается по играм, стратегия игрока влияет на его ролл
+  function newSim(ev) {
+    var me = overallOf(), N = ev.lobby, skill = [me];
     for (var i = 1; i < N; i++) skill.push(Math.max(35, Math.min(99, Math.round(me + rr(-16, 12)))));
     var totals = []; for (var z = 0; z < N; z++) totals.push(0);
-    var myElims = 0, best = N, vr = 0, log = [];
-    for (var gi = 0; gi < games; gi++) {
-      var order = skill.map(function (s, idx) { return { idx: idx, r: s + rr(-20, 20) }; }).sort(function (a, b) { return b.r - a.r; });
-      for (var p = 0; p < N; p++) {
+    return { ev: ev, N: N, skill: skill, totals: totals, myElims: 0, best: N, vr: 0, log: [], g: 0 };
+  }
+  function simGames(sim, count, mod) {
+    var out = [];
+    for (var c = 0; c < count && sim.g < sim.ev.games; c++) {
+      sim.g++;
+      var order = sim.skill.map(function (s, idx) {
+        var noise = idx === 0 ? rr(-20, 20) * mod.varMul + mod.perf : rr(-20, 20);
+        return { idx: idx, r: s + noise };
+      }).sort(function (a, b) { return b.r - a.r; });
+      for (var p = 0; p < sim.N; p++) {
         var idx = order[p].idx, place = p + 1;
-        var el = Math.max(0, Math.round((order[p].r - skill[idx] + 10) / 8) + (place <= 10 ? 1 : 0));
-        totals[idx] += placePts(place) + el * 4;
-        if (idx === 0) { myElims += el; if (place < best) best = place; if (place === 1) vr++; log.push({ g: gi + 1, place: place, el: el, pts: placePts(place) + el * 4 }); }
+        var base = Math.max(0, Math.round((order[p].r - sim.skill[idx] + 10) / 8) + (place <= 10 ? 1 : 0));
+        var el = idx === 0 ? Math.max(0, base + mod.killBias) : base;
+        sim.totals[idx] += placePts(place) + el * 4;
+        if (idx === 0) {
+          sim.myElims += el; if (place < sim.best) sim.best = place; if (place === 1) sim.vr++;
+          var row = { g: sim.g, place: place, el: el, pts: placePts(place) + el * 4 };
+          sim.log.push(row); out.push(row);
+        }
       }
     }
-    var myTotal = totals[0], rank = 1; for (var j = 1; j < N; j++) if (totals[j] > myTotal) rank++;
-    return { total: myTotal, elims: myElims, best: best, vr: vr, rank: rank, lobby: N, games: games, log: log };
+    return out;
   }
+  function myRankNow(sim) { var t = sim.totals[0], rank = 1; for (var j = 1; j < sim.N; j++) if (sim.totals[j] > t) rank++; return rank; }
+  function finishSim(sim) { return { total: sim.totals[0], elims: sim.myElims, best: sim.best, vr: sim.vr, rank: myRankNow(sim), lobby: sim.N, games: sim.ev.games, log: sim.log }; }
+
+  // выборы игрока на турнир (зависят от статов): СТР=0 СТРОЙ=1 РОТ=2 КЛЧ=3 IQ=4 СТБ=5
+  var DROPS = [
+    { id: "hot", ic: "🔥", n: "Горячая точка", d: "Много боёв и фрагов, но риск ранней смерти. Любит Стрельбу.", fit: 0, perf: 0, varMul: 1.3, killBias: 2 },
+    { id: "mid", ic: "⚖️", n: "Средняя зона", d: "Баланс фрагов и места, без перекосов.", fit: -1, perf: 1, varMul: 1, killBias: 0 },
+    { id: "edge", ic: "🛡️", n: "Тихий край", d: "Безопасно, упор на место. Любит Стабильность.", fit: 5, perf: 0, varMul: 0.78, killBias: -1 }
+  ];
+  var STYLES = [
+    { id: "aggro", ic: "⚔️", n: "Агрессия", d: "Ищи бои, набивай киллы. Любит Клатч.", fit: 3, perf: 0, varMul: 1.18, killBias: 2 },
+    { id: "adapt", ic: "🧠", n: "По ситуации", d: "Читай игру и адаптируйся. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 1, killBias: 0 },
+    { id: "safe", ic: "📦", n: "На выживание", d: "Ротируй рано, копи зону. Любит Ротации.", fit: 2, perf: 0, varMul: 0.84, killBias: -1 }
+  ];
+  var DECISIONS = [
+    { id: "push", ic: "🚀", n: "Идти на всё", d: "Рискнуть ради топа — больше разброс, но шанс прыгнуть выше.", perf: 2, varMul: 1.22, killBias: 1 },
+    { id: "hold", ic: "🧊", n: "Держать место", d: "Играть спокойно и не падать. Меньше разброс.", perf: 1, varMul: 0.8, killBias: 0 }
+  ];
+  function fitBonus(idx) { return idx < 0 ? 0 : (P.stats[idx] - 60) / 6; }
+  function addMod(m, o) { m.perf += (o.perf || 0) + fitBonus(o.fit != null ? o.fit : -1); m.varMul *= (o.varMul || 1); m.killBias += (o.killBias || 0); return m; }
+  function byId2(arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return arr[0]; }
   function prGain(rank, lobby, prW) { var pct = 1 - (rank - 1) / lobby; return Math.round(pct * pct * 140 * prW); }
   function prizeOf(rank, lobby, top) {
     if (rank === 1) return top; if (rank <= 3) return Math.round(top * 0.5); if (rank <= 5) return Math.round(top * 0.3);
@@ -435,10 +468,82 @@
   }
   var tourModal = $("#tourModal"), pendingDay = false;
   Array.prototype.forEach.call(document.querySelectorAll("[data-tclose]"), function (el) { el.addEventListener("click", function () { tourModal.hidden = true; if (pendingDay) { pendingDay = false; advanceDay(); } }); });
+  var tState = null;
+  function optCard(o) { return '<button class="t-opt" data-opt="' + o.id + '" type="button"><span class="t-opt-ic">' + o.ic + '</span><b>' + o.n + '</b><span>' + o.d + '</span></button>'; }
+  // Этап 1 — выбор дропа и стиля перед турниром
   function openTournament(ev) {
-    var res = simulate(ev.lobby, ev.games);
+    tState = { ev: ev, drop: null, style: null, shownTotal: 0 };
+    $("#tourTitle").textContent = ev.name;
+    $("#tourBody").innerHTML =
+      '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · лобби ' + ev.lobby + ' · ' + ev.games + ' игр · фонд от $' + fnum(ev.prizeTop) + '</p>' +
+      '<div class="t-phase"><h4 class="t-q">Где высаживаешься?</h4><div class="t-opts" data-grp="drop">' + DROPS.map(optCard).join("") + '</div>' +
+      '<h4 class="t-q">Стиль на турнир</h4><div class="t-opts" data-grp="style">' + STYLES.map(optCard).join("") + '</div>' +
+      '<button class="btn btn-primary btn-block" id="tGo" type="button" disabled>Выбери дроп и стиль</button></div>';
+    pendingDay = false;
+    tourModal.hidden = false;
+  }
+  // делегирование кликов внутри модалки турнира (навешивается один раз)
+  $("#tourBody").addEventListener("click", function (e) {
+    var opt = e.target.closest(".t-opt");
+    if (opt && tState) {
+      var grp = opt.parentNode.getAttribute("data-grp");
+      Array.prototype.forEach.call(opt.parentNode.children, function (c) { c.classList.remove("sel"); });
+      opt.classList.add("sel");
+      if (grp === "drop") tState.drop = opt.getAttribute("data-opt");
+      else if (grp === "style") tState.style = opt.getAttribute("data-opt");
+      else if (grp === "decision") { startSecondHalf(opt.getAttribute("data-opt")); return; }
+      var go = $("#tGo"); if (go) { var ready = tState.drop && tState.style; go.disabled = !ready; go.textContent = ready ? "Поехать на турнир →" : "Выбери дроп и стиль"; }
+      return;
+    }
+    if (e.target.id === "tGo" && !e.target.disabled) startTournament();
+    else if (e.target.id === "tourDone") { tourModal.hidden = true; pendingDay = false; advanceDay(); }
+  });
+  // Этап 2 — поехали: первая половина игр
+  function startTournament() {
+    var ev = tState.ev;
+    tState.sim = newSim(ev);
+    var mod = { perf: 0, varMul: 1, killBias: 0 };
+    addMod(mod, byId2(DROPS, tState.drop)); addMod(mod, byId2(STYLES, tState.style));
+    tState.baseMod = mod;
+    $("#tourBody").innerHTML =
+      '<div class="t-live"><div class="t-live-head"><span>Турнир идёт…</span><span>Очки <b id="tLiveTotal">0</b> · место <b id="tLiveRank">—</b></span></div>' +
+      '<div class="t-games" id="tGames"></div><div id="tMid"></div></div>';
+    var half = Math.ceil(ev.games / 2);
+    revealGames(simGames(tState.sim, half, mod), showMidDecision);
+  }
+  // Этап 3 — решение по ходу: как доигрывать
+  function showMidDecision() {
+    var rank = myRankNow(tState.sim), N = tState.ev.lobby;
+    var msg = rank <= N * 0.1 ? "Ты в топе — " + rank + " место!" : rank <= N * 0.4 ? "Идёшь неплохо: " + rank + " место." : "Пока " + rank + " место — есть куда расти.";
+    $("#tMid").innerHTML = '<div class="t-decision"><p class="t-dec-q">' + msg + ' Осталось ' + (tState.ev.games - tState.sim.g) + ' игр. Как доигрываешь?</p>' +
+      '<div class="t-opts" data-grp="decision">' + DECISIONS.map(optCard).join("") + '</div></div>';
+  }
+  function startSecondHalf(decId) {
+    var mod = { perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias };
+    addMod(mod, byId2(DECISIONS, decId));
+    $("#tMid").innerHTML = "";
+    revealGames(simGames(tState.sim, tState.ev.games - tState.sim.g, mod), function () { showResult(finishSim(tState.sim)); });
+  }
+  // анимированный показ игр по одной
+  function revealGames(rows, done) {
+    var gEl = $("#tGames"), i = 0;
+    (function step() {
+      if (!gEl) { done(); return; }
+      if (i >= rows.length) { var lr = $("#tLiveRank"); if (lr) lr.textContent = "#" + myRankNow(tState.sim); done(); return; }
+      var l = rows[i++];
+      tState.shownTotal += l.pts;
+      var row = document.createElement("div"); row.className = "tg-row" + (l.place === 1 ? " vr" : l.place <= 10 ? " top" : "");
+      row.innerHTML = '<span class="tg-g">Игра ' + l.g + '</span><span class="tg-pl">' + (l.place === 1 ? "👑 1 место" : l.place + " место") + '</span><span class="tg-k">' + l.el + ' килл</span><span class="tg-p">+' + l.pts + '</span>';
+      gEl.appendChild(row);
+      var lt = $("#tLiveTotal"); if (lt) lt.textContent = tState.shownTotal;
+      var lr2 = $("#tLiveRank"); if (lr2) lr2.textContent = "#" + myRankNow(tState.sim);
+      setTimeout(step, 470);
+    })();
+  }
+  // Этап 4 — итог + награды
+  function showResult(res) {
+    var ev = tState.ev;
     var prize = prizeOf(res.rank, ev.lobby, ev.prizeTop), pr = prGain(res.rank, ev.lobby, ev.prW);
-    // награды: опыт ко всем статам + призовые + PR
     var ups = [], xpAll = Math.round(8 + (1 - res.rank / ev.lobby) * 34);
     for (var i = 0; i < 6; i++) { P.xp[i] += xpAll; while (P.xp[i] >= XP_PER && P.stats[i] < 99) { P.stats[i]++; P.xp[i] -= XP_PER; ups.push(SHORT[i] + " +1"); } if (P.stats[i] >= 99) P.xp[i] = 0; }
     P.earnings += prize; P.pr += pr; P.mood = Math.min(100, P.mood + (res.rank <= 10 ? 6 : -2));
@@ -451,17 +556,14 @@
     var rankCls = res.rank === 1 ? "t-gold" : res.rank <= 3 ? "t-silver" : res.rank <= 10 ? "t-blue" : "";
     var rows = res.log.map(function (l) { return '<tr><td>Игра ' + l.g + '</td><td>' + (l.place === 1 ? "👑 1" : l.place) + '</td><td>' + l.el + '</td><td>' + l.pts + '</td></tr>'; }).join("");
     var trophyTxt = trophy === "win" ? "🏆 Победа на турнире!" : trophy === "podium" ? "🥈 Подиум (топ-3)" : trophy === "top10" ? "🎖 Топ-10" : "";
-    $("#tourTitle").textContent = ev.name;
     $("#tourBody").innerHTML =
       '<div class="t-rank ' + rankCls + '"><b>' + res.rank + '</b><span>место из ' + res.lobby + '</span></div>' +
       '<div class="t-kpis"><div><b>' + res.total + '</b><span>очки</span></div><div><b>' + res.elims + '</b><span>киллы</span></div><div><b>' + res.best + '</b><span>лучшее</span></div><div><b>' + res.vr + '</b><span>👑 VR</span></div></div>' +
       '<table class="t-log"><thead><tr><th>Игра</th><th>Место</th><th>Киллы</th><th>Очки</th></tr></thead><tbody>' + rows + '</tbody></table>' +
       (trophyTxt ? '<div class="t-tr">' + trophyTxt + '</div>' : "") +
       '<div class="t-rw-row">Приз: <b>$' + fnum(prize) + '</b> · <b>+' + pr + ' PR</b> · Опыт: <b>+' + xpAll + '</b>' + (ups.length ? ' · <span class="accent">' + ups.join(" ") + '</span>' : "") + '</div>' +
-      '<button class="btn btn-primary" id="tourDone" type="button">В следующий день →</button>';
+      '<button class="btn btn-primary btn-block" id="tourDone" type="button">В следующий день →</button>';
     pendingDay = true;
-    tourModal.hidden = false;
-    $("#tourDone").addEventListener("click", function () { tourModal.hidden = true; pendingDay = false; advanceDay(); });
   }
 
   /* ---------- toast ---------- */

@@ -524,6 +524,31 @@ p { margin: 0; }
 .t-rw-row { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 14px; }
 .t-rw-row b { color: var(--green); }
 #tourBody .btn { width: 100%; }
+/* interactive tournament: setup choices */
+.t-ev-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+.t-q { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .05em; font-size: 13px; color: var(--faint); margin: 12px 0 8px; }
+.t-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+.t-decision .t-opts { grid-template-columns: repeat(2, 1fr); }
+.t-opt { text-align: left; background: rgba(255, 255, 255, .05); border: 1.5px solid var(--line2); border-radius: 11px; padding: 11px; cursor: pointer; transition: .14s; display: flex; flex-direction: column; gap: 3px; }
+.t-opt:hover { border-color: var(--cyan); }
+.t-opt.sel { border-color: var(--accent); background: rgba(255, 210, 26, .1); box-shadow: inset 0 0 0 1px var(--accent); }
+.t-opt-ic { font-size: 22px; line-height: 1; }
+.t-opt b { font-family: "Oswald"; text-transform: uppercase; font-size: 13.5px; }
+.t-opt span:last-child { font-size: 11px; color: var(--muted); line-height: 1.3; }
+.t-phase .btn { margin-top: 14px; }
+/* live game feed */
+.t-live-head { display: flex; justify-content: space-between; align-items: center; font-family: "Oswald"; text-transform: uppercase; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+.t-live-head b { color: var(--accent); font-size: 16px; }
+.t-games { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+.tg-row { display: grid; grid-template-columns: 70px 1fr auto auto; gap: 10px; align-items: center; padding: 9px 12px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line2); border-radius: 9px; font-size: 13px; animation: tgIn .25s ease; }
+.tg-row.top { border-color: rgba(70, 182, 255, .4); } .tg-row.vr { border-color: var(--accent); background: rgba(255, 210, 26, .1); }
+.tg-g { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--faint); }
+.tg-pl { font-family: "Oswald"; font-weight: 600; } .tg-row.vr .tg-pl { color: var(--accent); }
+.tg-k { color: var(--muted); font-size: 12px; } .tg-p { font-family: "Oswald"; font-weight: 700; color: var(--green); }
+@keyframes tgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.t-decision { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line2); }
+.t-dec-q { font-size: 14px; margin-bottom: 10px; } .t-dec-q b { color: var(--accent); }
+@media (max-width: 560px) { .t-opts { grid-template-columns: 1fr; } .tg-row { grid-template-columns: 56px 1fr auto; } .tg-k { display: none; } }
 /* career: tournament CTA */
 .tour-cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .tour-cta .tc-body { flex: 1; min-width: 220px; }
