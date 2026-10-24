@@ -12,7 +12,7 @@
     lt: 32, by: 37, ua: 41, md: 44, ro: 31, bg: 37, rs: 29, ba: 27, me: 31, mk: 35, al: 39, gr: 47,
     mt: 37, cy: 62, tr: 57, ge: 72, am: 80, az: 84, is: 39, fo: 33, ax: 35, xk: 35, ma: 46, dz: 41,
     tn: 39, ly: 60, li: 13, ad: 30, mc: 19, sm: 25, va: 23, kz: 88, ir: 95, sa: 85, iq: 92, eg: 70,
-    sy: 66, lb: 68, il: 62, jo: 66, ps: 64, kw: 90
+    sy: 66, lb: 68, il: 62, jo: 66, ps: 64, kw: 90, kgd: 17
   };
   var RU_WEST = 40, RU_EAST = 80, RU_SPLIT_X = 616;
   var RU = {
@@ -26,11 +26,12 @@
     va: "Ватикан", xk: "Косово", fo: "Фареры", ax: "Аланды", ge: "Грузия", am: "Армения", az: "Азербайджан",
     kz: "Казахстан", ma: "Марокко", dz: "Алжир", tn: "Тунис", ly: "Ливия", eg: "Египет", sy: "Сирия",
     lb: "Ливан", il: "Израиль", jo: "Иордания", iq: "Ирак", ir: "Иран", sa: "Саудовская Аравия",
-    kw: "Кувейт", ps: "Палестина"
+    kw: "Кувейт", ps: "Палестина", kgd: "Калининград"
   };
   var SPRAWL = { ru: 1, kz: 1, ir: 1, sa: 1, iq: 1, eg: 1, ly: 1, sy: 1, jo: 1, il: 1, lb: 1, ps: 1, kw: 1 };
   var isoOf = function (id) { return id.indexOf("ru-") === 0 ? "ru" : id; };
-  var flagUrl = function (id) { return "https://flagcdn.com/w320/" + isoOf(id) + ".png"; };
+  var flagIso = function (id) { return id === "kgd" ? "ru" : isoOf(id); };
+  var flagUrl = function (id) { return "https://flagcdn.com/w320/" + flagIso(id) + ".png"; };
   var nameOf = function (id, fb) { return id === "ru-west" ? "Россия · Запад" : id === "ru-east" ? "Россия · Восток" : (RU[id] || fb || id.toUpperCase()); };
   var pingOf = function (id) { return id === "ru-west" ? RU_WEST : id === "ru-east" ? RU_EAST : PING[id]; };
 
@@ -42,7 +43,7 @@
 
   /* ================= MAP ================= */
   var host = $("#mapSvgHost"), svg, pt, paths = {}, labelSize = 5;
-  var base = null, view = null;
+  var base = null, view = null, ruWestHL = null, ruEastHL = null;
 
   function labelPoint(path, b) {
     var step = Math.max(b.width, b.height) / 20, sx = 0, sy = 0, n = 0, ins = [];
@@ -121,13 +122,60 @@
       im.style.pointerEvents = "none"; svg.insertBefore(im, p);
     });
 
-    /* Russia divider line (black), clipped to Russia */
-    var line = document.createElementNS(SVGNS, "line");
-    line.setAttribute("x1", RU_SPLIT_X); line.setAttribute("x2", RU_SPLIT_X);
-    line.setAttribute("y1", base.y); line.setAttribute("y2", base.y + base.h);
-    line.setAttribute("clip-path", "url(#cp-ru)"); line.setAttribute("stroke", "#061024");
-    line.setAttribute("stroke-width", "3.5"); line.setAttribute("vector-effect", "non-scaling-stroke");
-    line.style.pointerEvents = "none"; svg.appendChild(line);
+    /* Russia per-zone highlight (west / east). NB: in this build a clipped <rect>/<path>
+       doesn't paint, but a clipped <image> does (that's how the flags render). So the
+       highlight is a solid-gold image spanning one half, clipped to Russia's shape —
+       only the clicked zone lights up gold. */
+    var ruB = paths["ru"].getBBox();
+    var ruPathD = paths["ru"].getAttribute("d");
+    // Solid-gold 2x2 PNG (an SVG-data-URI image won't clip in this build; a PNG does).
+    var GOLD = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVR4AWL6f03jPwgzMUABAAAA//+7vRVYAAAABklEQVQDAFGKBf2XCucbAAAAAElFTkSuQmCC";
+    function zoneImg(cpId, x, wdt) {
+      // dedicated clipPath per zone — a shared clipPath only clips its first user in this build
+      var cp = document.createElementNS(SVGNS, "clipPath"); cp.id = cpId; cp.setAttribute("clipPathUnits", "userSpaceOnUse");
+      var cpp = document.createElementNS(SVGNS, "path"); cpp.setAttribute("d", ruPathD); cp.appendChild(cpp); defs.appendChild(cp);
+      var im = document.createElementNS(SVGNS, "image");
+      im.setAttribute("href", GOLD); im.setAttributeNS("http://www.w3.org/1999/xlink", "href", GOLD);
+      im.setAttribute("x", x); im.setAttribute("y", ruB.y - 2);
+      im.setAttribute("width", wdt); im.setAttribute("height", ruB.height + 4);
+      im.setAttribute("preserveAspectRatio", "none"); im.setAttribute("clip-path", "url(#" + cpId + ")");
+      im.setAttribute("class", "zone-hl"); im.style.pointerEvents = "none"; im.style.opacity = "0";
+      svg.appendChild(im); return im;
+    }
+    ruWestHL = zoneImg("cp-ruz-west", ruB.x - 2, RU_SPLIT_X - (ruB.x - 2));
+    ruEastHL = zoneImg("cp-ruz-east", RU_SPLIT_X, ruB.x + ruB.width + 2 - RU_SPLIT_X);
+
+    /* Kaliningrad exclave — absent from the base dataset; draw it manually (ping 17) */
+    var KGD_D = "M519.4,278.1 L524.6,274.7 L530.8,275.5 L531.4,279.3 L526.6,282.1 L520.6,281.3 Z";
+    var kp = document.createElementNS(SVGNS, "path");
+    kp.setAttribute("d", KGD_D); kp.setAttribute("class", "country");
+    kp.setAttribute("vector-effect", "non-scaling-stroke"); kp.setAttribute("fill", "transparent");
+    kp.style.pointerEvents = "all";
+    kp.setAttribute("data-id", "kgd"); kp.setAttribute("data-name", "Калининград");
+    kp.addEventListener("click", function () { if (panned) { panned = false; return; } selectCountry("kgd"); });
+    svg.appendChild(kp); paths["kgd"] = kp;
+    var kcp = document.createElementNS(SVGNS, "clipPath"); kcp.id = "cp-kgd"; kcp.setAttribute("clipPathUnits", "userSpaceOnUse");
+    var kcpath = document.createElementNS(SVGNS, "path"); kcpath.setAttribute("d", KGD_D); kcp.appendChild(kcpath); defs.appendChild(kcp);
+    var kb = kp.getBBox();
+    var kim = document.createElementNS(SVGNS, "image");
+    kim.setAttribute("href", flagUrl("kgd")); kim.setAttributeNS("http://www.w3.org/1999/xlink", "href", flagUrl("kgd"));
+    kim.setAttribute("x", kb.x); kim.setAttribute("y", kb.y); kim.setAttribute("width", kb.width); kim.setAttribute("height", kb.height);
+    kim.setAttribute("preserveAspectRatio", "none"); kim.setAttribute("clip-path", "url(#cp-kgd)");
+    kim.style.pointerEvents = "none"; svg.insertBefore(kim, kp);
+
+    /* Russia zone boundary — "international border" look (dark casing + light dashed core) */
+    function dline(stroke, wdt, dash) {
+      var l = document.createElementNS(SVGNS, "line");
+      l.setAttribute("x1", RU_SPLIT_X); l.setAttribute("x2", RU_SPLIT_X);
+      l.setAttribute("y1", ruB.y); l.setAttribute("y2", ruB.y + ruB.height);
+      l.setAttribute("clip-path", "url(#cp-ru)"); l.setAttribute("stroke", stroke);
+      l.setAttribute("stroke-width", wdt); l.setAttribute("stroke-linecap", "round");
+      if (dash) l.setAttribute("stroke-dasharray", dash);
+      l.setAttribute("vector-effect", "non-scaling-stroke"); l.style.pointerEvents = "none";
+      svg.appendChild(l);
+    }
+    dline("#0a1430", "4.2", null);
+    dline("rgba(233,240,255,.9)", "1.7", "5 4");
 
     /* labels — every country */
     data.locations.forEach(function (loc) {
@@ -140,6 +188,13 @@
     });
     addLabel(RU_WEST, 572, 252, false);
     addLabel(RU_EAST, 660, 252, false);
+    /* Kaliningrad: tiny exclave — label it out in the sea with a thin leader */
+    var kln = document.createElementNS(SVGNS, "line");
+    kln.setAttribute("x1", 519.4); kln.setAttribute("y1", 278.2);
+    kln.setAttribute("x2", 514.5); kln.setAttribute("y2", 274.6);
+    kln.setAttribute("stroke", "rgba(233,240,255,.7)"); kln.setAttribute("stroke-width", "1");
+    kln.setAttribute("vector-effect", "non-scaling-stroke"); kln.style.pointerEvents = "none"; svg.appendChild(kln);
+    addLabel(PING.kgd, 511, 273.4, false);
 
     initZoomPan();
   }
@@ -189,7 +244,10 @@
   function selectCountry(id) {
     var baseId = isoOf(id); if (!paths[baseId]) return;
     state.country = id; localStorage.setItem("fnc_country", id);
-    Object.keys(paths).forEach(function (k) { paths[k].classList.toggle("selected", k === baseId); });
+    var isRuZone = id === "ru-west" || id === "ru-east";
+    Object.keys(paths).forEach(function (k) { paths[k].classList.toggle("selected", !isRuZone && k === baseId); });
+    if (ruWestHL) ruWestHL.style.opacity = id === "ru-west" ? ".82" : "0";
+    if (ruEastHL) ruEastHL.style.opacity = id === "ru-east" ? ".82" : "0";
     var ping = pingOf(id);
     var html = '<img class="flag" src="' + flagUrl(baseId) + '" alt="" /> ' + nameOf(id, paths[baseId].getAttribute("data-name"));
     html += ping != null ? ' — пинг <b>&nbsp;' + ping + ' мс</b>' : '';
@@ -309,7 +367,7 @@
     var s = buildStats();
     localStorage.setItem("fnc_ping", pingOf(state.country) != null ? pingOf(state.country) : "");
     localStorage.setItem("fnc_country_name", nameOf(state.country));
-    localStorage.setItem("fnc_country_flag", isoOf(state.country));
+    localStorage.setItem("fnc_country_flag", flagIso(state.country));
     localStorage.setItem("fnc_overall", s.overall);
     localStorage.setItem("fnc_base", s.baseOvr);
     localStorage.setItem("fnc_bonus", s.bonus);

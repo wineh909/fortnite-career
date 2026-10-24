@@ -152,6 +152,7 @@ p { margin: 0; }
 .map-wrap .country:hover { fill: rgba(255, 255, 255, .16); }
 .map-wrap .country.dim { fill: rgba(5, 11, 30, .66); }
 .map-wrap .country.selected { fill: rgba(255, 210, 26, .32); stroke: var(--accent); stroke-width: 2.2; }
+.map-wrap .zone-hl { transition: opacity .18s; }
 .map-wrap { cursor: grab; touch-action: none; }
 .map-wrap.grabbing { cursor: grabbing; }
 .map-wrap svg { touch-action: none; }
