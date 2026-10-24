@@ -18,7 +18,7 @@
     pos: g("fnc_pos") || "—", role: g("fnc_role") || "",
     stats: (function () { try { var p = JSON.parse(g("fnc_stats")); if (p && p.vals && p.vals.length === 6) return p.vals.map(Number); } catch (e) {} return [55, 55, 55, 55, 55, 55]; })(),
     xp: (function () { try { var p = JSON.parse(g("fnc_statxp")); if (p && p.length === 6) return p.map(Number); } catch (e) {} return [0, 0, 0, 0, 0, 0]; })(),
-    energy: numk("fnc_energy", 100), mood: numk("fnc_mood", 62)
+    energy: numk("fnc_energy", 100), mood: numk("fnc_mood", 62), balance: numk("fnc_balance", 0)
   };
   var flagUrl = function (iso) { return "https://flagcdn.com/w320/" + iso + ".png"; };
   function ageBonus(a) { a = +a || 20; return a <= 16 ? 6 : a <= 18 ? 4 : a <= 21 ? 2 : a <= 25 ? 0 : a <= 30 ? -2 : -4; }
@@ -34,8 +34,12 @@
     localStorage.setItem("fnc_rarity_color", rarityOf(o).c); localStorage.setItem("fnc_division", divOf(o));
     localStorage.setItem("fnc_energy", P.energy); localStorage.setItem("fnc_mood", P.mood);
     localStorage.setItem("fnc_statxp", JSON.stringify(P.xp));
+    localStorage.setItem("fnc_balance", P.balance);
   }
   var XP_PER = 100; // опыта на +1 к стату
+  function fmtMoney(n) { return (n || 0).toLocaleString("ru-RU"); }
+  function loadArr(k) { try { var v = JSON.parse(g(k)); if (v && v.length != null) return v; } catch (e) {} return []; }
+  function loadObj(k) { try { var v = JSON.parse(g(k)); if (v && typeof v === "object") return v; } catch (e) {} return {}; }
 
   var today = new Date();
   function fmtD(d) { return DOW[(d.getDay() + 6) % 7] + ", " + d.getDate() + " " + MON[d.getMonth()]; }
@@ -71,7 +75,7 @@
       '<div class="pb-name"><h2>' + esc(P.nick) + '</h2><div class="pb-meta">' + P.age + ' лет · Дивизион ' + divOf(o) + ' · ' + P.pos + ' <img class="flag" src="' + flagUrl(P.flag) + '" alt=""></div></div></div>' +
       '<div class="pb-mid"><span class="pb-rating"><b>' + o + '</b><span>Рейтинг</span></span>' +
       '<div class="pb-energy"><div class="k">Энергия</div><div class="bar"><i style="width:' + P.energy + '%"></i></div></div>' +
-      '<div class="pb-bal"><div class="k">Баланс</div><b>$0</b></div></div>' +
+      '<div class="pb-bal"><div class="k">Баланс</div><b>$' + fmtMoney(P.balance) + '</b></div></div>' +
       '<div class="pb-season"><div class="c"><b>1</b><span>Сезон</span></div><div class="c"><b>' + today.getDate() + " " + MON[today.getMonth()] + '</b><span>Неделя</span></div><div class="c"><b>' + P.ping + '</b><span>Пинг</span></div></div></div>';
   }
 
@@ -92,7 +96,10 @@
 
   function wire(name) {
     if (name === "center") {
-      var ab = $("#actionBtn"); if (ab) ab.addEventListener("click", function () { var ev = evInfo(); if (ev.isToday) return; openTrain(DRILLS[2]); });
+      var ab = $("#actionBtn"); if (ab) ab.addEventListener("click", function () { var ev = evInfo(); if (ev.isToday) openTournament("Виктори Кап"); else openTrain(DRILLS[2]); });
+    }
+    if (name === "career") {
+      var pt = $("#playTourBtn"); if (pt) pt.addEventListener("click", function () { openTournament(pt.getAttribute("data-ev") || "Показательный турнир"); });
     }
     if (name === "training") {
       Array.prototype.forEach.call(document.querySelectorAll("[data-drill]"), function (el) {
@@ -138,11 +145,16 @@
     var o = overallOf(), d = divOf(o);
     var ladder = "";
     for (var i = 7; i >= 1; i--) ladder += '<div class="lad' + (i === d ? " cur" : (i < d ? " done" : "")) + '"><b>Д' + i + '</b><span>' + (i === 1 ? "Чемпионский" : i <= 2 ? "Элита" : i <= 4 ? "Контендеры" : "Открытый") + '</span></div>';
+    var hist = loadArr("fnc_history"), played = hist.length, ev = evInfo(), tr = loadObj("fnc_trophies");
+    var trIc = { win: "🏆", podium: "🥈", top10: "🎖" }, trNm = { win: "Победы", podium: "Подиумы", top10: "Топ-10" };
+    var trophyHtml = Object.keys(trIc).filter(function (k) { return tr[k]; }).map(function (k) { return '<div class="trophy"><span class="tr-ic">' + trIc[k] + '</span><b>' + tr[k] + '</b><span class="tr-nm">' + trNm[k] + '</span></div>'; }).join("");
     return '<div class="fcard"><p class="panel-title">Путь карьеры · Сезон 1</p><h3 class="blk-h">Ты в&nbsp;<span class="accent">Дивизионе ' + d + '</span></h3>' +
       '<p class="blk-sub">Поднимайся по&nbsp;дивизионам: качай статы, играй турниры и&nbsp;пробивайся в&nbsp;топ.</p>' +
       '<div class="ladder">' + ladder + '</div></div>' +
+      '<div class="fcard tour-cta"><div class="tc-body"><p class="panel-title">Турнир</p><h4 class="blk-h2">' + (ev.isToday ? "Сегодня: Виктори Кап" : "Виктори Кап · " + ev.date) + '</h4><p class="blk-sub">Сессия из 6 игр. Место и&nbsp;очки зависят от&nbsp;твоих статов, а&nbsp;не&nbsp;от&nbsp;рандома. Сыграно турниров: <b>' + played + '</b>.</p></div>' +
+      '<button class="btn btn-primary btn-lg" id="playTourBtn" data-ev="Виктори Кап" type="button">Играть турнир →</button></div>' +
       '<div class="two-col"><div class="fcard"><p class="panel-title">Цель сезона</p><h4 class="blk-h2">Выйти в&nbsp;Дивизион ' + Math.max(1, d - 1) + '</h4><p class="blk-sub">Набери рейтинг и&nbsp;не&nbsp;вылетай из&nbsp;квалификаций.</p><div class="goal-bar"><i style="width:' + Math.min(100, (o % 7) * 14 + 20) + '%"></i></div></div>' +
-      '<div class="fcard"><p class="panel-title">Трофеи</p><p class="blk-sub">Пока пусто. Выиграй первый турнир, чтобы получить трофей.</p><div class="trophy-empty">🏆</div></div></div>';
+      '<div class="fcard"><p class="panel-title">Трофеи</p>' + (trophyHtml ? '<div class="trophy-row">' + trophyHtml + '</div>' : '<p class="blk-sub">Пока пусто. Выиграй первый турнир, чтобы получить трофей.</p><div class="trophy-empty">🏆</div>') + '</div></div>';
   }
 
   /* ---------- tab: Тренировка ---------- */
@@ -193,7 +205,20 @@
 
   /* ---------- tab: История ---------- */
   function renderHistory() {
-    return '<div class="fcard"><p class="panel-title">История матчей</p><div class="empty-state"><div class="es-ic">🎮</div><h3>Пока нет сыгранных матчей</h3><p>Сыграй первый турнир — и&nbsp;результаты появятся здесь.</p></div></div>';
+    var hist = loadArr("fnc_history");
+    if (!hist.length) return '<div class="fcard"><p class="panel-title">История матчей</p><div class="empty-state"><div class="es-ic">🎮</div><h3>Пока нет сыгранных матчей</h3><p>Сыграй первый турнир — и&nbsp;результаты появятся здесь.</p></div></div>';
+    var best = hist.reduce(function (m, h) { return Math.min(m, h.rank); }, 999);
+    var wins = hist.filter(function (h) { return h.vr > 0; }).length;
+    var rows = hist.map(function (h) {
+      var dt = new Date(h.date), ds = dt.getDate() + " " + MON[dt.getMonth()];
+      var badge = h.rank === 1 ? "t-gold" : h.rank <= 3 ? "t-silver" : h.rank <= 10 ? "t-blue" : "";
+      return '<div class="hist-row"><div class="hr-place ' + badge + '">#' + h.rank + '</div>' +
+        '<div class="hr-body"><b>' + esc(h.name) + '</b><span>' + ds + ' · ' + h.total + ' очк · ' + h.elims + ' килл · лучшее #' + h.best + (h.vr ? " · 👑" + h.vr : "") + '</span></div>' +
+        '<div class="hr-prize">' + (h.prize ? "$" + fmtMoney(h.prize) : "—") + '</div></div>';
+    }).join("");
+    return '<div class="fcard"><p class="panel-title">История матчей</p>' +
+      '<div class="hist-sum"><div><b>' + hist.length + '</b><span>турниров</span></div><div><b>#' + best + '</b><span>лучшее место</span></div><div><b>' + wins + '</b><span>👑 викторий</span></div></div>' +
+      '<div class="hist-list">' + rows + '</div></div>';
   }
 
   /* ---------- training minigame ---------- */
@@ -300,6 +325,73 @@
       '<div class="tm-res-ovr">Рейтинг: ' + oOld + ' → <b>' + oNew + '</b> · Энергия: ' + P.energy + '%</div>' +
       '<button class="btn btn-primary" type="button" id="tmAgain">Готово</button>';
     $("#tmAgain").addEventListener("click", function () { closeModal(); buildBar(); setTab(cur); });
+  }
+
+  /* ---------- tournament simulation (skill-based, not pure random) ---------- */
+  function rr(a, b) { return a + Math.random() * (b - a); }
+  function placePts(place) {
+    if (place === 1) return 60; if (place <= 2) return 54; if (place <= 3) return 50; if (place <= 5) return 46;
+    if (place <= 8) return 42; if (place <= 12) return 36; if (place <= 16) return 30; if (place <= 25) return 24;
+    if (place <= 35) return 18; if (place <= 50) return 12; if (place <= 70) return 6; return 3;
+  }
+  // Full lobby simulated each game: placement is driven by overall (skill) + bounded variance.
+  function simulateTournament(games) {
+    games = games || 6;
+    var me = overallOf(), N = 100, skill = [me];
+    for (var i = 1; i < N; i++) skill.push(Math.max(35, Math.min(99, Math.round(me + rr(-16, 12)))));
+    var totals = []; for (var t = 0; t < N; t++) totals.push(0);
+    var myElims = 0, best = N, vr = 0, log = [];
+    for (var gi = 0; gi < games; gi++) {
+      var order = skill.map(function (s, idx) { return { idx: idx, r: s + rr(-20, 20) }; }).sort(function (a, b) { return b.r - a.r; });
+      for (var p = 0; p < N; p++) {
+        var idx = order[p].idx, place = p + 1;
+        var el = Math.max(0, Math.round((order[p].r - skill[idx] + 10) / 7) + (place <= 10 ? 1 : 0));
+        totals[idx] += placePts(place) + el;
+        if (idx === 0) { myElims += el; if (place < best) best = place; if (place === 1) vr++; log.push({ g: gi + 1, place: place, el: el, pts: placePts(place) + el }); }
+      }
+    }
+    var myTotal = totals[0], rank = 1;
+    for (var j = 1; j < N; j++) if (totals[j] > myTotal) rank++;
+    return { me: me, games: games, total: myTotal, elims: myElims, best: best, vr: vr, rank: rank, lobby: N, log: log };
+  }
+  function tournamentRewards(res) {
+    var pct = res.rank / res.lobby; // меньше = лучше
+    return {
+      xpAll: Math.round(10 + (1 - pct) * 40), // 10..50 опыта ко всем статам
+      prize: res.rank === 1 ? 5000 : res.rank <= 3 ? 2500 : res.rank <= 10 ? 1200 : res.rank <= 25 ? 500 : res.rank <= 50 ? 150 : 0,
+      trophy: res.vr > 0 ? "win" : res.rank <= 3 ? "podium" : res.rank <= 10 ? "top10" : null
+    };
+  }
+  function applyTournament(res, rw) {
+    var ups = [];
+    for (var i = 0; i < 6; i++) { P.xp[i] += rw.xpAll; while (P.xp[i] >= XP_PER && P.stats[i] < 99) { P.stats[i]++; P.xp[i] -= XP_PER; ups.push(SHORT[i] + " +1"); } if (P.stats[i] >= 99) P.xp[i] = 0; }
+    P.balance += rw.prize; P.energy = Math.max(0, P.energy - 25); P.mood = Math.min(100, P.mood + (res.rank <= 10 ? 6 : -2));
+    save();
+    var hist = loadArr("fnc_history");
+    hist.unshift({ name: res.name, date: Date.now(), rank: res.rank, lobby: res.lobby, total: res.total, elims: res.elims, best: res.best, vr: res.vr, prize: rw.prize });
+    localStorage.setItem("fnc_history", JSON.stringify(hist.slice(0, 30)));
+    if (rw.trophy) { var tr = loadObj("fnc_trophies"); tr[rw.trophy] = (tr[rw.trophy] || 0) + 1; localStorage.setItem("fnc_trophies", JSON.stringify(tr)); }
+    return ups;
+  }
+  var tourModal = $("#tourModal");
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tclose]"), function (el) { el.addEventListener("click", function () { tourModal.hidden = true; }); });
+  function openTournament(name) {
+    if (P.energy < 25) { flash("Мало энергии для турнира. Отдохни."); return; }
+    var res = simulateTournament(6); res.name = name || "Турнир";
+    var rw = tournamentRewards(res), ups = applyTournament(res, rw);
+    var rankCls = res.rank === 1 ? "t-gold" : res.rank <= 3 ? "t-silver" : res.rank <= 10 ? "t-blue" : "";
+    var rows = res.log.map(function (l) { return '<tr><td>Игра ' + l.g + '</td><td>' + (l.place === 1 ? "👑 1" : l.place) + '</td><td>' + l.el + '</td><td>' + l.pts + '</td></tr>'; }).join("");
+    var trophyTxt = rw.trophy === "win" ? "🏆 Victory Royale!" : rw.trophy === "podium" ? "🥈 Подиум (топ-3)" : rw.trophy === "top10" ? "🎖 Топ-10" : "";
+    $("#tourTitle").textContent = res.name;
+    $("#tourBody").innerHTML =
+      '<div class="t-rank ' + rankCls + '"><b>' + res.rank + '</b><span>место из ' + res.lobby + '</span></div>' +
+      '<div class="t-kpis"><div><b>' + res.total + '</b><span>очки</span></div><div><b>' + res.elims + '</b><span>киллы</span></div><div><b>' + res.best + '</b><span>лучшее</span></div><div><b>' + res.vr + '</b><span>👑 VR</span></div></div>' +
+      '<table class="t-log"><thead><tr><th>Игра</th><th>Место</th><th>Киллы</th><th>Очки</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      (trophyTxt ? '<div class="t-tr">' + trophyTxt + '</div>' : "") +
+      '<div class="t-rw-row">Приз: <b>$' + fmtMoney(rw.prize) + '</b> · Опыт: <b>+' + rw.xpAll + '</b> ко всем статам' + (ups.length ? ' · <span class="accent">' + ups.join(" ") + '</span>' : "") + '</div>' +
+      '<button class="btn btn-primary" id="tourDone" type="button">Готово</button>';
+    tourModal.hidden = false;
+    $("#tourDone").addEventListener("click", function () { tourModal.hidden = true; buildBar(); setTab(cur); });
   }
 
   /* ---------- toast ---------- */
