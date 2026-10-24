@@ -82,6 +82,8 @@
             </div>
             <p class="panel-title" style="margin-top:4px">Тренировки</p>
             <div class="train-grid" id="trainGrid"></div>
+            <p class="panel-title" style="margin-top:16px">Карточка игрока</p>
+            <div id="dashCardMini"></div>
           </aside>
 
           <!-- Main -->
@@ -95,15 +97,7 @@
               <div class="week-row" id="weekRow"></div>
             </div>
 
-            <div class="dash-two">
-              <div id="dashCard"></div>
-              <div class="fcard event-big">
-                <span class="eb-tag">Ближайшее крупное событие</span>
-                <h4>Виктори Кап</h4>
-                <p>Games of the Future 2025 · Abu Dhabi. Победи в&nbsp;квалификации и&nbsp;пробейся на&nbsp;ЛАН.</p>
-                <div class="eb-when">Старт: <b id="ebDate">—</b></div>
-              </div>
-            </div>
+            <div class="fcard action-card" id="actionCard"></div>
           </div>
         </div>
       </div>
@@ -155,13 +149,13 @@
 
       // week
       var dow = (today.getDay() + 6) % 7, monday = new Date(today); monday.setDate(today.getDate() - dow);
-      var evIdx = 3, html = "";
+      var evIdx = 3, html = "", evDateStr = "—", todayIsEvent = false;
       for (var i = 0; i < 7; i++) {
         var d = new Date(monday); d.setDate(monday.getDate() + i);
         var isNow = d.toDateString() === today.toDateString(), isEv = i === evIdx;
         var lbl = isEv ? "Виктори Кап" : (isNow ? "Сегодня · свободно" : "Свободный день");
         html += '<div class="day-cell' + (isNow ? " now" : "") + (isEv ? " ev" : "") + '"><div class="dow">' + DOW[i] + '</div><div class="dnum">' + d.getDate() + '</div><div class="dlbl">' + lbl + '</div></div>';
-        if (isEv) document.getElementById("ebDate").textContent = DOW[i] + ", " + d.getDate() + " " + MON[d.getMonth()];
+        if (isEv) { evDateStr = DOW[i] + ", " + d.getDate() + " " + MON[d.getMonth()]; if (isNow) todayIsEvent = true; }
       }
       document.getElementById("weekRow").innerHTML = html;
 
@@ -170,23 +164,38 @@
       for (var n = 1; n <= 50; n++) sp += '<span class="' + (evDays[n] ? "ev" : "") + (n === nowDay ? " now" : "") + '">' + (evDays[n] ? "$" : n) + '</span>';
       document.getElementById("seasonPills").innerHTML = sp;
 
-      // player card
+      // player card — компактная, в сайдбаре под тренировками
       var rar = g("fnc_rarity_color") || "#3fe07a";
       var av2 = av ? '<img src="' + av + '" alt="">' : '<span class="noav">нет<br>фото</span>';
       var rows = st.keys.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + st.vals[i] + '</span><span class="s-bar"><i style="width:' + st.vals[i] + '%"></i></span></div>'; }).join("");
-      document.getElementById("dashCard").innerHTML =
-        '<div class="pcard" style="--rar:' + rar + '">' +
+      document.getElementById("dashCardMini").innerHTML =
+        '<div class="pcard mini" style="--rar:' + rar + '">' +
           '<div class="pcard-top"><div>' +
             '<div class="pc-ovr">' + (g("fnc_overall") || "—") + '</div>' +
             '<div class="pc-base">' + (g("fnc_base") || "") + ' <span>' + (g("fnc_bonus") >= 0 ? "+" : "") + (g("fnc_bonus") || "0") + '</span></div>' +
             '<div><span class="pc-pos">' + (g("fnc_pos") || "—") + '</span></div>' +
-            '<div class="pc-region"><img class="flag" src="' + (cc ? "https://flagcdn.com/w320/" + cc + ".png" : "") + '" alt=""> Европа</div>' +
           '</div><div class="pcard-av">' + av2 + '</div></div>' +
           '<div class="pcard-nick">' + g("fnc_nick").replace(/[<>&]/g, "") + '</div>' +
           '<div class="pcard-rarity">' + (g("fnc_rarity") || "") + '</div>' +
           '<div class="pcard-stats">' + rows + '</div>' +
           '<div class="pcard-div">FNCS · <b>Дивизион ' + (g("fnc_division") || "—") + '</b></div>' +
         '</div>';
+
+      // action — турнир / тренировка (как на FNCS Draft)
+      var ar = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>';
+      var acHtml;
+      if (todayIsEvent) {
+        acHtml = '<span class="ac-tag ac-live">Турнир сегодня</span><h3>Виктори Кап</h3>' +
+          '<p>Games of the Future 2025 · Abu Dhabi. Победи в&nbsp;квалификации и&nbsp;пробейся на&nbsp;ЛАН.</p>' +
+          '<button class="btn btn-primary btn-lg" type="button">Играть турнир ' + ar + '</button>';
+      } else {
+        acHtml = '<span class="ac-tag">Свободный день</span><h3>Тренировка</h3>' +
+          '<p>Турнира сегодня нет — качай статы на&nbsp;тренировке. Выбери занятие и&nbsp;жми «Тренироваться».</p>' +
+          '<div class="train-opts"><span class="sel">Скримы</span><span>Аим-тренировка</span><span>Разбор игр</span><span>Отдых</span></div>' +
+          '<button class="btn btn-primary btn-lg" type="button">Тренироваться ' + ar + '</button>' +
+          '<div class="ac-next">Ближайший турнир: <b>Виктори Кап</b> · ' + evDateStr + '</div>';
+      }
+      document.getElementById("actionCard").innerHTML = acHtml;
 
       document.querySelectorAll("[data-year]").forEach(function (e) { e.textContent = new Date().getFullYear(); });
     })();

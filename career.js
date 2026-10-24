@@ -105,8 +105,19 @@
       var cpath = document.createElementNS(SVGNS, "path"); cpath.setAttribute("d", loc.path); cp.appendChild(cpath); defs.appendChild(cp);
       var im = document.createElementNS(SVGNS, "image");
       im.setAttribute("href", flagUrl(loc.id)); im.setAttributeNS("http://www.w3.org/1999/xlink", "href", flagUrl(loc.id));
-      im.setAttribute("x", b.x); im.setAttribute("y", b.y); im.setAttribute("width", b.width); im.setAttribute("height", b.height);
-      im.setAttribute("preserveAspectRatio", "xMidYMid slice"); im.setAttribute("clip-path", "url(#cp-" + loc.id + ")");
+      if (loc.id === "ru") {
+        // Russia's bbox is huge and its white (top) stripe sits above the viewport.
+        // Horizontal tricolor is uniform across width, so map it (undistorted) to the
+        // VISIBLE vertical band so all three stripes (white/blue/red) show.
+        var topY = base.y, botY = Math.min(b.y + b.height, base.y + base.h);
+        im.setAttribute("x", b.x); im.setAttribute("y", topY);
+        im.setAttribute("width", b.width); im.setAttribute("height", botY - topY);
+        im.setAttribute("preserveAspectRatio", "none");
+      } else {
+        im.setAttribute("x", b.x); im.setAttribute("y", b.y); im.setAttribute("width", b.width); im.setAttribute("height", b.height);
+        im.setAttribute("preserveAspectRatio", "xMidYMid slice");
+      }
+      im.setAttribute("clip-path", "url(#cp-" + loc.id + ")");
       im.style.pointerEvents = "none"; svg.insertBefore(im, p);
     });
 
@@ -127,8 +138,8 @@
       var small = b.width < w * 0.05 && b.height < h * 0.05;
       addLabel(PING[loc.id], lp.x, lp.y, small);
     });
-    addLabel(RU_WEST, 582, 224, false);
-    addLabel(RU_EAST, 648, 224, false);
+    addLabel(RU_WEST, 572, 252, false);
+    addLabel(RU_EAST, 660, 252, false);
 
     initZoomPan();
   }

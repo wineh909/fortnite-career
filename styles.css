@@ -361,3 +361,26 @@ p { margin: 0; }
 
 @media (max-width: 920px) { .dash { grid-template-columns: 1fr; } .player-bar { grid-template-columns: 1fr; gap: 14px; } .pb-mid { justify-content: flex-start; } .pb-season { text-align: left; } }
 @media (max-width: 620px) { .dash-two { grid-template-columns: 1fr; } .week-row { grid-template-columns: repeat(4, 1fr); } .train-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* compact card (sidebar) + action card */
+.pcard.mini { max-width: 100%; margin: 0; padding: 16px; clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
+.pcard.mini .pc-ovr { font-size: 40px; }
+.pcard.mini .pc-base { font-size: 13px; }
+.pcard.mini .pcard-av { width: 56px; height: 56px; }
+.pcard.mini .pcard-nick { font-size: 19px; margin: 10px 0 2px; }
+.pcard.mini .pcard-stats { gap: 7px; }
+.pcard.mini .pc-row { grid-template-columns: 84px 24px 1fr; gap: 8px; }
+.pcard.mini .pc-row .s-k { font-size: 10.5px; }
+.pcard.mini .pc-row .s-v { font-size: 14px; }
+.pcard.mini .pcard-div { font-size: 11px; margin-top: 12px; padding-top: 10px; }
+
+.action-card { text-align: center; padding: 30px 26px; }
+.ac-tag { display: inline-block; font-family: "Oswald"; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; padding: 6px 14px; border-radius: 999px; margin-bottom: 14px; color: var(--cyan); background: rgba(111, 224, 255, .12); border: 1px solid rgba(111, 224, 255, .32); }
+.ac-tag.ac-live { color: var(--accent); background: rgba(255, 210, 26, .14); border-color: rgba(255, 210, 26, .45); }
+.action-card h3 { font-family: "Oswald"; font-style: italic; font-size: 30px; margin-bottom: 8px; }
+.action-card > p { color: var(--muted); font-size: 14.5px; max-width: 46ch; margin: 0 auto 20px; }
+.train-opts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 20px; }
+.train-opts span { font-family: "Oswald"; text-transform: uppercase; font-size: 12.5px; letter-spacing: .03em; color: var(--ink); background: rgba(255, 255, 255, .06); border: 1px solid var(--line); padding: 9px 14px; border-radius: 9px; cursor: default; }
+.train-opts span.sel { background: #fff; color: var(--accent-ink); border-color: transparent; }
+.ac-next { margin-top: 16px; font-family: "Oswald"; text-transform: uppercase; font-size: 12.5px; color: var(--muted); }
+.ac-next b { color: var(--accent); }
