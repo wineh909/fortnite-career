@@ -90,7 +90,10 @@
   }
 
   /* ---------- rendering ---------- */
-  var setupEl = $("#draftSetup"), ctrlEl = $("#poolControls"), poolEl = $("#poolGrid"), teamEl = $("#teamPanel");
+  var setupEl = $("#draftSetup"), ctrlEl = $("#poolControls"), poolEl = $("#poolGrid"), teamEl = $("#teamPanel"), histEl = $("#draftHistory");
+  var MON = ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
+  function fmtDate(ts) { var d = new Date(ts); return d.getDate() + " " + MON[d.getMonth()]; }
+  function draftHist() { try { return JSON.parse(localStorage.getItem("fnc_draft_history")) || []; } catch (e) { return []; } }
 
   function pill(list, cur, attr) {
     return list.map(function (o) { var id = o.id != null ? o.id : o; var nm = o.name != null ? o.name : o; return '<button class="dpill' + (id === cur ? " active" : "") + '" data-' + attr + '="' + id + '" type="button">' + nm + '</button>'; }).join("");
@@ -171,7 +174,25 @@
       (S.team.length ? '<button class="btn btn-ghost btn-block" id="clearBtn" type="button">Очистить состав</button>' : "") +
       '</div>';
   }
-  function renderAll() { renderSetup(); renderControls(); renderPool(); renderTeam(); }
+  function renderHistory() {
+    var hist = draftHist();
+    if (!hist.length) { histEl.innerHTML = ""; return; }
+    var played = hist.length;
+    var best = hist.reduce(function (m, h) { return Math.min(m, h.rank); }, 999);
+    var champs = hist.filter(function (h) { return h.rank === 1; }).length;
+    var totalPrize = hist.reduce(function (a, h) { return a + (h.prize || 0); }, 0);
+    var rows = hist.map(function (h) {
+      var f = FORMATS.filter(function (x) { return x.id === h.format; })[0] || { name: h.format };
+      var badge = h.rank === 1 ? "t-gold" : h.rank <= 3 ? "t-silver" : h.rank <= 10 ? "t-blue" : "";
+      return '<div class="dh-row"><div class="dh-place ' + badge + '">#' + h.rank + '</div>' +
+        '<div class="dh-body"><b>' + esc((h.names || []).join(" · ")) + '</b><span>' + regOf(h.region).name + ' · ' + f.name + ' · сила ' + h.power + ' · ' + h.total + ' очк · ' + fmtDate(h.date) + '</span></div>' +
+        '<div class="dh-prize">' + (h.prize ? "$" + h.prize.toLocaleString("ru-RU") : "—") + '</div></div>';
+    }).join("");
+    histEl.innerHTML = '<div class="fcard"><p class="panel-title">История драфтов</p>' +
+      '<div class="dh-sum"><div><b>' + played + '</b><span>турниров</span></div><div><b>#' + best + '</b><span>лучшее место</span></div><div><b>' + champs + '</b><span>🏆 чемпионств</span></div><div><b>$' + totalPrize.toLocaleString("ru-RU") + '</b><span>призовых</span></div></div>' +
+      '<div class="dh-list">' + rows + '</div></div>';
+  }
+  function renderAll() { renderSetup(); renderControls(); renderPool(); renderTeam(); renderHistory(); }
 
   /* ---------- interactions ---------- */
   function flash(msg) {
@@ -246,6 +267,7 @@
     var hist; try { hist = JSON.parse(localStorage.getItem("fnc_draft_history")) || []; } catch (e) { hist = []; }
     hist.unshift({ date: Date.now(), region: S.region, format: S.format, power: ts.power, names: t.map(function (p) { return p.name; }), rank: res.rank, lobby: res.lobby, total: res.total, elims: res.elims, wins: res.wins, prize: prize });
     localStorage.setItem("fnc_draft_history", JSON.stringify(hist.slice(0, 20)));
+    renderHistory();
     // MVP = highest-ov player
     var mvp = t.slice().sort(function (a, b) { return b.ov - a.ov; })[0];
     var rankCls = res.rank === 1 ? "t-gold" : res.rank <= 3 ? "t-silver" : res.rank <= 10 ? "t-blue" : "";
