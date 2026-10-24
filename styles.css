@@ -496,6 +496,14 @@ p { margin: 0; }
 .trophy .tr-ic { font-size: 30px; display: block; }
 .trophy b { font-family: "Oswald"; font-size: 22px; color: var(--accent); }
 .trophy .tr-nm { display: block; font-size: 11px; text-transform: uppercase; color: var(--muted); }
+/* achievements */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ach { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, .03); border: 1px solid var(--line2); border-radius: 11px; padding: 11px 13px; opacity: .55; filter: grayscale(.5); }
+.ach.done { opacity: 1; filter: none; border-color: color-mix(in srgb, var(--accent) 45%, var(--line2)); background: rgba(255, 210, 26, .07); }
+.ach-ic { font-size: 26px; line-height: 1; }
+.ach-tx { flex: 1; min-width: 0; } .ach-tx b { display: block; font-family: "Oswald"; text-transform: uppercase; letter-spacing: .02em; font-size: 15px; } .ach-tx span { font-size: 11.5px; color: var(--muted); }
+.ach-chk { color: var(--accent); font-weight: 700; font-size: 18px; }
+
 /* history */
 .hist-sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
 .hist-sum div { background: rgba(255, 255, 255, .05); border: 1px solid var(--line2); border-radius: 10px; padding: 10px; text-align: center; }

@@ -140,6 +140,35 @@
       '<p class="kv-note">Статы растут на&nbsp;тренировках. Чем выше рейтинг — тем выше дивизион и&nbsp;редкость карточки.</p></div></div>';
   }
 
+  /* ---------- achievements ---------- */
+  var ACHIEVEMENTS = [
+    { ic: "🎮", n: "Дебют", d: "Сыграть первый турнир", f: function (c) { return c.history.length >= 1; } },
+    { ic: "🏆", n: "Чемпион", d: "Выиграть турнир (1 место)", f: function (c) { return c.history.some(function (h) { return h.rank === 1; }); } },
+    { ic: "🎖", n: "Топ-10", d: "Финишировать в топ-10", f: function (c) { return c.history.some(function (h) { return h.rank <= 10; }); } },
+    { ic: "👑", n: "Виктори", d: "Взять Victory Royale", f: function (c) { return c.history.some(function (h) { return (h.vr || 0) > 0; }); } },
+    { ic: "🔫", n: "Снайпер", d: "20+ киллов за турнир", f: function (c) { return c.history.some(function (h) { return h.elims >= 20; }); } },
+    { ic: "⭐", n: "Легенда", d: "Рейтинг 85+", f: function (c) { return c.overall >= 85; } },
+    { ic: "🥇", n: "Элита", d: "Достичь Дивизиона 1", f: function (c) { return c.division <= 1; } },
+    { ic: "💰", n: "Богач", d: "Накопить $10 000", f: function (c) { return c.balance >= 10000; } },
+    { ic: "🏋️", n: "Трудяга", d: "Провести 20 тренировок", f: function (c) { return c.trainings >= 20; } },
+    { ic: "📅", n: "Ветеран", d: "Сыграть 10 турниров", f: function (c) { return c.history.length >= 10; } },
+    { ic: "🏗️", n: "Архитектор", d: "Прокачать Стройку до 90", f: function (c) { return c.stats[1] >= 90; } },
+    { ic: "🎯", n: "Машина", d: "Прокачать Стрельбу до 90", f: function (c) { return c.stats[0] >= 90; } }
+  ];
+  function achCtx() {
+    var o = overallOf();
+    return { history: loadArr("fnc_history"), overall: o, division: divOf(o), balance: P.balance, trainings: numk("fnc_trainings", 0), stats: P.stats };
+  }
+  function renderAchievements() {
+    var c = achCtx();
+    var items = ACHIEVEMENTS.map(function (a) { return { a: a, done: !!a.f(c) }; });
+    var got = items.filter(function (x) { return x.done; }).length;
+    var cells = items.map(function (x) {
+      return '<div class="ach' + (x.done ? " done" : "") + '"><span class="ach-ic">' + x.a.ic + '</span><div class="ach-tx"><b>' + x.a.n + '</b><span>' + x.a.d + '</span></div>' + (x.done ? '<span class="ach-chk">✓</span>' : "") + '</div>';
+    }).join("");
+    return '<div class="fcard"><p class="panel-title">Достижения <span class="pt-note">' + got + " / " + ACHIEVEMENTS.length + '</span></p><div class="ach-grid">' + cells + '</div></div>';
+  }
+
   /* ---------- tab: Карьера ---------- */
   function renderCareer() {
     var o = overallOf(), d = divOf(o);
@@ -154,7 +183,8 @@
       '<div class="fcard tour-cta"><div class="tc-body"><p class="panel-title">Турнир</p><h4 class="blk-h2">' + (ev.isToday ? "Сегодня: Виктори Кап" : "Виктори Кап · " + ev.date) + '</h4><p class="blk-sub">Сессия из 6 игр. Место и&nbsp;очки зависят от&nbsp;твоих статов, а&nbsp;не&nbsp;от&nbsp;рандома. Сыграно турниров: <b>' + played + '</b>.</p></div>' +
       '<button class="btn btn-primary btn-lg" id="playTourBtn" data-ev="Виктори Кап" type="button">Играть турнир →</button></div>' +
       '<div class="two-col"><div class="fcard"><p class="panel-title">Цель сезона</p><h4 class="blk-h2">Выйти в&nbsp;Дивизион ' + Math.max(1, d - 1) + '</h4><p class="blk-sub">Набери рейтинг и&nbsp;не&nbsp;вылетай из&nbsp;квалификаций.</p><div class="goal-bar"><i style="width:' + Math.min(100, (o % 7) * 14 + 20) + '%"></i></div></div>' +
-      '<div class="fcard"><p class="panel-title">Трофеи</p>' + (trophyHtml ? '<div class="trophy-row">' + trophyHtml + '</div>' : '<p class="blk-sub">Пока пусто. Выиграй первый турнир, чтобы получить трофей.</p><div class="trophy-empty">🏆</div>') + '</div></div>';
+      '<div class="fcard"><p class="panel-title">Трофеи</p>' + (trophyHtml ? '<div class="trophy-row">' + trophyHtml + '</div>' : '<p class="blk-sub">Пока пусто. Выиграй первый турнир, чтобы получить трофей.</p><div class="trophy-empty">🏆</div>') + '</div></div>' +
+      renderAchievements();
   }
 
   /* ---------- tab: Тренировка ---------- */
@@ -316,7 +346,7 @@
       if (P.stats[i] >= 99) P.xp[i] = 0;
     });
     P.energy = Math.max(0, P.energy - 10); P.mood = Math.min(100, P.mood + 3);
-    save(); var oNew = overallOf();
+    save(); localStorage.setItem("fnc_trainings", numk("fnc_trainings", 0) + 1); var oNew = overallOf();
     var scoreLbl = curDrill.mode === "edit" ? " правок" : " попаданий";
     tmResult.hidden = false;
     tmResult.innerHTML = '<div class="tm-res-big">' + hits + scoreLbl + '</div>' +
