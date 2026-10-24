@@ -424,7 +424,44 @@ p { margin: 0; }
 .ev-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: rgba(0, 0, 0, .2); border: 1px solid var(--line); border-radius: 10px; }
 .ev-ic { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 9px; background: rgba(255, 210, 26, .14); color: var(--accent); font-size: 18px; flex: none; }
 .ev-body { flex: 1; } .ev-body b { display: block; font-family: "Oswald"; font-size: 16px; } .ev-body span { font-size: 12px; color: var(--muted); }
-.ev-date { font-family: "Oswald"; text-transform: uppercase; font-size: 12.5px; color: var(--accent); }
+.ev-date { font-family: "Oswald"; text-transform: uppercase; font-size: 12.5px; color: var(--accent); text-align: right; }
+.ev-date span { display: block; font-size: 10.5px; color: var(--faint); }
+.ev-row.done { opacity: .55; } .ev-row.now { border-color: var(--accent); box-shadow: inset 0 0 0 1px rgba(255,210,26,.5); }
+/* event type colors */
+.ev-cup { color: var(--cyan) !important; background: rgba(111,224,255,.14) !important; }
+.ev-cash { color: var(--green) !important; background: rgba(63,224,122,.14) !important; }
+.ev-major { color: #b06bff !important; background: rgba(176,107,255,.16) !important; }
+.ev-final { color: var(--accent) !important; background: rgba(255,210,26,.16) !important; }
+.day-cell.ev-cup { border-color: rgba(111,224,255,.5); background: rgba(111,224,255,.1); }
+.day-cell.ev-cash { border-color: rgba(63,224,122,.5); background: rgba(63,224,122,.1); }
+.day-cell.ev-major { border-color: rgba(176,107,255,.5); background: rgba(176,107,255,.12); }
+.day-cell.ev-final { border-color: rgba(255,210,26,.6); background: rgba(255,210,26,.14); }
+.ac-tag.ev-cash { color: var(--green); background: rgba(63,224,122,.14); border-color: rgba(63,224,122,.4); }
+.ac-tag.ev-major { color: #c79bff; background: rgba(176,107,255,.16); border-color: rgba(176,107,255,.45); }
+/* player bar PR / earnings */
+.pb-stat { display: inline-flex; flex-direction: column; align-items: center; }
+.pb-stat b { font-family: "Oswald"; font-weight: 700; font-size: 20px; line-height: 1; color: var(--ink); }
+.pb-stat span { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--faint); margin-top: 3px; }
+/* action card buttons */
+.ac-btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+/* PR / earnings hero number */
+.big-stat { text-align: center; padding: 10px 0 4px; }
+.big-stat b { display: block; font-family: "Oswald"; font-weight: 700; font-size: 46px; line-height: 1; color: var(--accent); }
+.big-stat span { font-size: 13px; color: var(--muted); }
+/* profile total earnings */
+.earn-total { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding: 14px 16px; border-radius: 12px; background: rgba(63,224,122,.1); border: 1px solid rgba(63,224,122,.35); }
+.earn-total span { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .04em; font-size: 12.5px; color: var(--muted); }
+.earn-total b { font-family: "Oswald"; font-weight: 700; font-size: 26px; color: var(--green); }
+/* training minigames: edit wall (Fortnite), react, odd */
+.tm-grid.edit-wall .tm-cell { background: linear-gradient(145deg, #d8b98a, #b1884f); border: 2px solid #7f6134; border-radius: 6px; position: relative; }
+.tm-grid.edit-wall .tm-cell::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 45%, rgba(0,0,0,.12) 45% 55%, transparent 55% 100%); border-radius: 4px; }
+.tm-grid.edit-wall .tm-cell.target::after { content: ""; position: absolute; inset: 5px; border: 3px dashed var(--accent); border-radius: 4px; }
+.tm-grid.edit-wall .tm-cell.cut { background: rgba(8, 16, 40, .9); border-color: var(--accent); box-shadow: inset 0 0 16px rgba(0,0,0,.7); }
+.tm-grid.edit-wall .tm-cell.cut::before { opacity: 0; }
+.tm-grid.edit-wall.ok { outline: 3px solid var(--green); outline-offset: 4px; border-radius: 14px; }
+.tm-grid.react-grid .tm-cell.lit { background: var(--green); border-color: #eafff0; box-shadow: 0 0 18px rgba(63,224,122,.6); }
+.tm-grid.odd-grid .tm-cell { background: rgba(70,182,255,.22); border-color: rgba(70,182,255,.4); }
+.tm-grid.odd-grid .tm-cell.odd { background: var(--accent); border-color: #fff; box-shadow: 0 0 14px rgba(255,210,26,.5); }
 
 .lb { width: 100%; border-collapse: collapse; margin-top: 6px; }
 .lb th { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--faint); letter-spacing: .05em; text-align: left; padding: 8px 12px; }

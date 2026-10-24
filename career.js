@@ -313,8 +313,8 @@
   function hashStr(s) { var h = 2166136261 >>> 0; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
   function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function ageBonus(a) { a = +a || 20; return a <= 16 ? 6 : a <= 18 ? 4 : a <= 21 ? 2 : a <= 25 ? 0 : a <= 30 ? -2 : -4; }
-  function rarityOf(o) { return o >= 84 ? { name: "Легендарный", c: "#ffcf3a" } : o >= 74 ? { name: "Эпический", c: "#b06bff" } : o >= 64 ? { name: "Редкий", c: "#46b6ff" } : o >= 55 ? { name: "Необычный", c: "#3fe07a" } : { name: "Обычный", c: "#9aa6bf" }; }
-  function divOf(o) { return o >= 85 ? 1 : o >= 78 ? 2 : o >= 70 ? 3 : o >= 63 ? 4 : o >= 56 ? 5 : o >= 48 ? 6 : 7; }
+  function rarityOf(o) { return o >= 95 ? { name: "Мифический", c: "#ffd84d" } : o >= 90 ? { name: "Легендарный", c: "#ff9b3d" } : o >= 80 ? { name: "Эпический", c: "#b06bff" } : o >= 70 ? { name: "Редкий", c: "#46b6ff" } : o >= 60 ? { name: "Необычный", c: "#3fe07a" } : { name: "Обычный", c: "#9aa6bf" }; }
+  function divOf(o) { return o >= 82 ? 1 : o >= 75 ? 2 : o >= 68 ? 3 : o >= 61 ? 4 : 5; }
   function buildStats() {
     var r = rng(hashStr((state.nick || "player").toLowerCase() + "|" + isoOf(state.country || "")));
     var v = STAT_KEYS.map(function () { return 42 + Math.floor(r() * 34); });
