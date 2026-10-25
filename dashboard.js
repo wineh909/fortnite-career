@@ -449,16 +449,20 @@
     mid: { lbl: "Средне", c: "#ffd84d", perf: 1, varMul: 1, killBias: 0, fit: -1 },
     safe: { lbl: "Тихо", c: "#3fe07a", perf: 0, varMul: 0.78, killBias: -1, fit: 5 }
   };
-  var POIS = [
-    { id: "oxr", n: "O.X.R. HQ", heat: "hot", x: 50, y: 38 },
-    { id: "dojo", n: "Demon's Dojo", heat: "hot", x: 70, y: 27 },
-    { id: "crime", n: "Crime City", heat: "hot", x: 31, y: 52 },
-    { id: "shiny", n: "Shiny Shafts", heat: "mid", x: 23, y: 31 },
-    { id: "meadows", n: "Masked Meadows", heat: "mid", x: 58, y: 58 },
-    { id: "swarm", n: "Swarmy Stash", heat: "mid", x: 80, y: 50 },
-    { id: "hopeful", n: "Hopeful Heights", heat: "safe", x: 43, y: 18 },
-    { id: "oasis", n: "Outlaw Oasis", heat: "safe", x: 16, y: 66 },
-    { id: "frogs", n: "Fighting Frogs", heat: "safe", x: 85, y: 73 }
+  var POIS = [ // координаты в % квадрата карты (фон — реальная карта Fortnite)
+    { id: "lifty", n: "Lifty Lodge", heat: "safe", x: 34, y: 14 },
+    { id: "freaky", n: "Freaky Fields", heat: "mid", x: 65, y: 19 },
+    { id: "wonkee", n: "Wonkeeland", heat: "mid", x: 80, y: 28 },
+    { id: "chopped", n: "Chopped Shop", heat: "safe", x: 19, y: 31 },
+    { id: "nightmare", n: "Nightmare Neighborhood", heat: "hot", x: 44, y: 32 },
+    { id: "greenhill", n: "Green Hill Zone", heat: "mid", x: 32, y: 47 },
+    { id: "reality", n: "Reality's Reign", heat: "hot", x: 64, y: 47 },
+    { id: "golden", n: "Golden Grove", heat: "mid", x: 83, y: 53 },
+    { id: "stone", n: "Stone Sanctum", heat: "hot", x: 49, y: 63 },
+    { id: "shaken", n: "Shaken Sanctuary", heat: "mid", x: 71, y: 67 },
+    { id: "heatwave", n: "Heatwave Harbor", heat: "safe", x: 23, y: 68 },
+    { id: "sunken", n: "Sunken Shores", heat: "safe", x: 46, y: 80 },
+    { id: "cluster", n: "Cluster Coast", heat: "safe", x: 78, y: 81 }
   ];
   // забег по зонам: 4 этапа (действие → проходят зоны → действие)
   var PHASES = [
@@ -483,24 +487,15 @@
       { id: "read", ic: "🧠", n: "Читать зону", d: "Угадать круг и занять центр. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 0.9, killBias: 0 }
     ] }
   ];
-  function splitGames(total, parts) { var b = Math.floor(total / parts), r = total % parts, a = []; for (var i = 0; i < parts; i++) a.push(b + (i < r ? 1 : 0)); return a; }
   function heatOf(id) { return HEAT[(POIS.filter(function (p) { return p.id === id; })[0] || POIS[0]).heat]; }
   function poiOf(id) { return POIS.filter(function (p) { return p.id === id; })[0] || POIS[0]; }
-  function dropMapSvg(selId) {
-    var land = "M18,20 C30,10 55,8 72,14 C86,19 92,30 90,44 C88,60 80,74 64,80 C48,86 28,84 16,74 C6,66 6,52 8,42 C9,33 12,26 18,20 Z";
-    var markers = POIS.map(function (p) {
-      var h = HEAT[p.heat], on = p.id === selId;
-      return '<g class="poi' + (on ? " on" : "") + '" data-poi="' + p.id + '" transform="translate(' + p.x + ',' + p.y + ')">' +
-        '<circle class="poi-dot" r="' + (on ? 3.1 : 2.3) + '" fill="' + h.c + '"/>' +
-        '<circle class="poi-hit" r="7" fill="transparent"/>' +
-        '<text class="poi-lbl" y="-3.6">' + p.n + '</text></g>';
+  // POI-кнопки поверх реальной карты (фон задаёт CSS .br-map)
+  function poiMarkers(selId) {
+    return POIS.map(function (p) {
+      var h = HEAT[p.heat];
+      return '<button class="br-poi' + (p.id === selId ? " on" : "") + '" data-poi="' + p.id + '" style="left:' + p.x + '%;top:' + p.y + '%" type="button">' +
+        '<span class="br-poi-dot" style="background:' + h.c + '"></span><span class="br-poi-lbl">' + esc(p.n) + '</span></button>';
     }).join("");
-    return '<svg class="drop-map" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">' +
-      '<rect x="0" y="0" width="100" height="90" fill="#0a2036"/>' +
-      '<path d="' + land + '" fill="#163a2c" stroke="#2f6b4e" stroke-width="0.8"/>' +
-      '<path d="M40,16 C44,34 38,50 48,64 C54,72 62,74 70,78" fill="none" stroke="#1f4e63" stroke-width="2.2" opacity=".7"/>' +
-      '<path d="M22,46 C40,44 60,50 86,46" fill="none" stroke="#3a3f2a" stroke-width="1.4" opacity=".6"/>' +
-      markers + '</svg>';
   }
   function fitBonus(idx) { return idx < 0 ? 0 : (P.stats[idx] - 60) / 6; }
   function addMod(m, o) { m.perf += (o.perf || 0) + fitBonus(o.fit != null ? o.fit : -1); m.varMul *= (o.varMul || 1); m.killBias += (o.killBias || 0); return m; }
@@ -514,10 +509,13 @@
   var tourModal = $("#tourModal"), pendingDay = false;
   Array.prototype.forEach.call(document.querySelectorAll("[data-tclose]"), function (el) { el.addEventListener("click", function () { tourModal.hidden = true; if (pendingDay) { pendingDay = false; advanceDay(); } }); });
   var tState = null;
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function dist(ax, ay, bx, by) { var dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
   function optCard(o) { return '<button class="t-opt" data-opt="' + o.id + '" type="button"><span class="t-opt-ic">' + o.ic + '</span><b>' + o.n + '</b><span>' + o.d + '</span></button>'; }
-  // Этап 1 — карта высадки: выбери точку (POI) как в Fortnite
+
+  // Этап 1 — карта высадки (реальная карта Fortnite, клик по локации)
   function openTournament(ev) {
-    tState = { ev: ev, poi: null, phaseIdx: 0, shownTotal: 0, segs: splitGames(ev.games, 4) };
+    tState = { ev: ev, poi: null };
     $("#tourTitle").textContent = ev.name;
     renderMap();
     pendingDay = false;
@@ -526,66 +524,126 @@
   function renderMap() {
     var ev = tState.ev, sel = tState.poi, p = sel ? poiOf(sel) : null, h = sel ? heatOf(sel) : null;
     $("#tourBody").innerHTML =
-      '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · лобби ' + ev.lobby + ' · ' + ev.games + ' игр · фонд от $' + fnum(ev.prizeTop) + '</p>' +
+      '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · ' + ev.lobby + ' игроков · фонд от $' + fnum(ev.prizeTop) + '</p>' +
       '<h4 class="t-q">Куда высаживаешься?</h4>' +
-      '<div class="map-wrap-t">' + dropMapSvg(sel) + '</div>' +
-      '<div class="map-legend"><span><i style="background:#ff6b4a"></i>Жарко — фраги, риск</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо — на место</span></div>' +
-      '<div class="map-pick">' + (p ? '<b style="color:' + h.c + '">' + esc(p.n) + '</b> · ' + h.lbl + (h.fit >= 0 ? ' · тащит ' + SHORT[h.fit] : '') : 'Нажми на точку на карте') + '</div>' +
-      '<button class="btn btn-primary btn-block" id="tDrop" type="button"' + (sel ? "" : " disabled") + '>' + (sel ? "Высадиться →" : "Выбери точку") + '</button>';
+      '<div class="br-map br-pick" id="brMap"><div class="br-pois">' + poiMarkers(sel) + '</div></div>' +
+      '<div class="map-legend"><span><i style="background:#ff6b4a"></i>Жарко</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо</span></div>' +
+      '<div class="map-pick">' + (p ? 'Высадка: <b style="color:' + h.c + '">' + esc(p.n) + '</b>' + (h.fit >= 0 ? ' · тащит ' + SHORT[h.fit] : '') : 'Нажми на локацию на карте') + '</div>' +
+      '<button class="btn btn-primary btn-block" id="tDrop" type="button"' + (sel ? "" : " disabled") + '>' + (sel ? "Высадиться →" : "Выбери локацию") + '</button>';
   }
-  // делегирование кликов внутри модалки турнира (навешивается один раз)
+  // делегирование кликов (навешивается один раз)
   $("#tourBody").addEventListener("click", function (e) {
     if (!tState) return;
     var poi = e.target.closest("[data-poi]");
     if (poi) { tState.poi = poi.getAttribute("data-poi"); renderMap(); return; }
-    if (e.target.id === "tDrop" && !e.target.disabled) { landAndStart(); return; }
+    if (e.target.id === "tDrop" && !e.target.disabled) { startRun(); return; }
     var opt = e.target.closest(".t-opt");
     if (opt && opt.parentNode.getAttribute("data-grp") === "phase") { applyPhase(opt.getAttribute("data-opt")); return; }
     if (e.target.id === "tourDone") { tourModal.hidden = true; pendingDay = false; advanceDay(); }
   });
-  // Этап 2 — высадка: базовый модификатор от точки + запуск забега по зонам
-  function landAndStart() {
-    var ev = tState.ev, h = heatOf(tState.poi);
-    tState.sim = newSim(ev);
-    tState.baseMod = addMod({ perf: 0, varMul: 1, killBias: 0 }, h);
+
+  // ===== Battle Royale на карте: зоны + игроки-стрелочки =====
+  function startRun() {
+    var ev = tState.ev, drop = poiOf(tState.poi), N = ev.lobby;
+    var zones = [{ x: 50, y: 48, r: 45 }];
+    for (var z = 1; z < 8; z++) {
+      var prev = zones[z - 1], nr = prev.r * 0.66, a = rr(0, Math.PI * 2), d = (prev.r - nr) * Math.random();
+      zones.push({ x: clamp(prev.x + Math.cos(a) * d, nr, 100 - nr), y: clamp(prev.y + Math.sin(a) * d, nr, 100 - nr), r: nr });
+    }
+    var players = [{ x: drop.x, y: drop.y, alive: true, me: true, skill: overallOf(), kills: 0 }];
+    for (var i = 1; i < N; i++) {
+      var sp = POIS[Math.floor(Math.random() * POIS.length)];
+      players.push({ x: clamp(sp.x + rr(-7, 7), 2, 98), y: clamp(sp.y + rr(-7, 7), 2, 98), alive: true, me: false, skill: clamp(Math.round(overallOf() + rr(-16, 12)), 35, 99), kills: 0 });
+    }
+    tState.zones = zones; tState.players = players; tState.zoneIdx = 0; tState.alive = N; tState.kills = 0;
+    tState.me = players[0]; tState.phaseIdx = 0;
+    tState.baseMod = addMod({ perf: 0, varMul: 1, killBias: 0 }, heatOf(tState.poi));
+    tState.aliveCurve = [N, Math.round(N * 0.62), Math.round(N * 0.4), Math.round(N * 0.26), Math.round(N * 0.16), Math.round(N * 0.09), Math.round(N * 0.04), 1];
     $("#tourBody").innerHTML =
-      '<div class="t-live"><div class="t-live-head"><span id="tPhaseLbl">Высадка · ' + esc(poiOf(tState.poi).n) + '</span><span>Очки <b id="tLiveTotal">0</b> · место <b id="tLiveRank">—</b></span></div>' +
-      '<div class="t-games" id="tGames"></div><div id="tMid"></div></div>';
-    tState.phaseIdx = 0;
+      '<div class="br-hud"><span id="brPhase">Высадка · ' + esc(drop.n) + '</span><span>Живых <b id="brAlive">' + N + '</b> · зона <b id="brZone">1</b>/8 · киллы <b id="brKills">0</b></span></div>' +
+      '<div class="br-map" id="brMap"><div class="br-zone" id="brZoneC"></div><div class="br-players" id="brPlayers">' +
+      players.map(function (p) { return '<i class="br-arrow' + (p.me ? " me" : "") + '" style="left:' + p.x + '%;top:' + p.y + '%"></i>'; }).join("") + '</div></div>' +
+      '<div id="tMid"></div>';
+    layoutZone();
     showPhase(0);
   }
-  // Этап 3 — действие на этапе (зоне); после выбора проходят зоны (игры)
+  function layoutZone() {
+    var map = $("#brMap"), zc = $("#brZoneC"); if (!map || !zc) return;
+    var z = tState.zones[tState.zoneIdx], w = map.clientWidth || map.getBoundingClientRect().width;
+    var d = (z.r * 2 / 100) * w;
+    zc.style.width = d + "px"; zc.style.height = d + "px"; zc.style.left = z.x + "%"; zc.style.top = z.y + "%";
+  }
   function showPhase(i) {
-    var ph = PHASES[i], lbl = $("#tPhaseLbl"); if (lbl) lbl.textContent = ph.title;
+    var ph = PHASES[i], lbl = $("#brPhase"); if (lbl) lbl.textContent = ph.title;
     $("#tMid").innerHTML = '<div class="t-decision"><p class="t-dec-q"><b>' + ph.title + '.</b> ' + ph.sub + '</p>' +
       '<div class="t-opts" data-grp="phase">' + ph.opts.map(optCard).join("") + '</div></div>';
   }
   function applyPhase(optId) {
     var ph = PHASES[tState.phaseIdx], opt = byId2(ph.opts, optId);
-    var mod = addMod({ perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias }, opt);
-    $("#tMid").innerHTML = '<div class="t-zoneflow">Зона сужается…</div>';
-    var n = tState.segs[tState.phaseIdx];
-    revealGames(simGames(tState.sim, n, mod), function () {
+    tState.curMod = addMod({ perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias }, opt);
+    $("#tMid").innerHTML = '<div class="t-zoneflow">Шторм сужается…</div>';
+    runZones(2, function () {
       tState.phaseIdx++;
+      if (!tState.me.alive || tState.zoneIdx >= tState.zones.length - 1) { finishRun(); return; }
       if (tState.phaseIdx < PHASES.length) showPhase(tState.phaseIdx);
-      else showResult(finishSim(tState.sim));
+      else finishRun();
     });
   }
-  // анимированный показ игр по одной
-  function revealGames(rows, done) {
-    var gEl = $("#tGames"), i = 0;
-    (function step() {
-      if (!gEl) { done(); return; }
-      if (i >= rows.length) { var lr = $("#tLiveRank"); if (lr) lr.textContent = "#" + myRankNow(tState.sim); done(); return; }
-      var l = rows[i++];
-      tState.shownTotal += l.pts;
-      var row = document.createElement("div"); row.className = "tg-row" + (l.place === 1 ? " vr" : l.place <= 10 ? " top" : "");
-      row.innerHTML = '<span class="tg-g">Игра ' + l.g + '</span><span class="tg-pl">' + (l.place === 1 ? "👑 1 место" : l.place + " место") + '</span><span class="tg-k">' + l.el + ' килл</span><span class="tg-p">+' + l.pts + '</span>';
-      gEl.appendChild(row);
-      var lt = $("#tLiveTotal"); if (lt) lt.textContent = tState.shownTotal;
-      var lr2 = $("#tLiveRank"); if (lr2) lr2.textContent = "#" + myRankNow(tState.sim);
-      setTimeout(step, 470);
+  function runZones(n, done) {
+    var k = 0;
+    (function next() {
+      if (k >= n || !tState.me.alive || tState.zoneIdx >= tState.zones.length - 1) { done(); return; }
+      k++; stepZone(); setTimeout(next, 1350);
     })();
+  }
+  function stepZone() {
+    tState.zoneIdx++;
+    var zi = tState.zoneIdx, z = tState.zones[zi], mod = tState.curMod || tState.baseMod;
+    var alivePlayers = tState.players.filter(function (p) { return p.alive; });
+    alivePlayers.forEach(function (p) {
+      if (dist(p.x, p.y, z.x, z.y) > z.r * 0.75) {
+        var pull = p.me ? 0.8 : 0.58 + Math.random() * 0.32;
+        p.x = clamp(p.x + (z.x - p.x) * pull + rr(-3, 3), 1, 99);
+        p.y = clamp(p.y + (z.y - p.y) * pull + rr(-3, 3), 1, 99);
+      } else { p.x = clamp(p.x + rr(-4, 4), 1, 99); p.y = clamp(p.y + rr(-4, 4), 1, 99); }
+    });
+    var target = tState.aliveCurve[zi] || 1, need = Math.max(0, tState.alive - target);
+    var me = tState.me, inZone = dist(me.x, me.y, z.x, z.y) <= z.r * 1.1;
+    // выживание: порог растёт к эндгейму — хороший игрок доживает дальше
+    var surviveRoll = (me.skill - 45) + mod.perf * 1.5 + (inZone ? 0 : -22) + rr(-13, 13) * mod.varMul;
+    var TH = [0, 2, 6, 12, 20, 30, 44, 62];
+    var meDies = surviveRoll < (TH[zi] != null ? TH[zi] : 70);
+    var bots = alivePlayers.filter(function (p) { return !p.me; });
+    bots.sort(function (a, b) {
+      return ((dist(a.x, a.y, z.x, z.y) <= z.r ? a.skill : a.skill - 40) + rr(-10, 10)) - ((dist(b.x, b.y, z.x, z.y) <= z.r ? b.skill : b.skill - 40) + rr(-10, 10));
+    });
+    var botDeaths = meDies ? Math.max(0, need - 1) : need;
+    for (var i = 0; i < botDeaths && i < bots.length; i++) bots[i].alive = false;
+    if (meDies) { me.alive = false; me.place = tState.players.filter(function (p) { return p.alive; }).length + 1; }
+    else { var kg = Math.max(0, Math.round((mod.killBias + fitBonus(0)) * 0.3 * Math.random())); me.kills += kg; tState.kills += kg; }
+    tState.alive = tState.players.filter(function (p) { return p.alive; }).length;
+    renderStep();
+  }
+  function renderStep() {
+    layoutZone();
+    var pl = $("#brPlayers"); if (pl) {
+      var nodes = pl.children;
+      tState.players.forEach(function (p, i) { var el = nodes[i]; if (!el) return; el.style.left = p.x + "%"; el.style.top = p.y + "%"; if (!p.alive) el.classList.add(p.me ? "knocked" : "dead"); });
+    }
+    var a = $("#brAlive"); if (a) a.textContent = tState.alive;
+    var zz = $("#brZone"); if (zz) zz.textContent = tState.zoneIdx + 1;
+    var kk = $("#brKills"); if (kk) kk.textContent = tState.kills;
+  }
+  function finishRun() {
+    var me = tState.me, placement;
+    if (me.alive) {
+      var last = tState.players.filter(function (p) { return p.alive; });
+      if (last.length > 1) { last.sort(function (a, b) { return (b.skill + (b.me ? tState.curMod.perf * 2 : 0) + rr(0, 16)) - (a.skill + (a.me ? tState.curMod.perf * 2 : 0) + rr(0, 16)); }); placement = last.indexOf(me) + 1; }
+      else placement = 1;
+      if (placement === 1 && me.kills === 0) me.kills = 1;
+    } else placement = me.place || (tState.alive + 1);
+    var ev = tState.ev, total = placePts(placement) + tState.kills * 4;
+    showResult({ rank: placement, lobby: ev.lobby, total: total, elims: tState.kills, best: placement, vr: placement === 1 ? 1 : 0, log: [] });
   }
   // Этап 4 — итог + награды
   function showResult(res) {
@@ -606,7 +664,7 @@
     $("#tourBody").innerHTML =
       '<div class="t-rank ' + rankCls + '"><b>' + res.rank + '</b><span>место из ' + res.lobby + '</span></div>' +
       '<div class="t-kpis"><div><b>' + res.total + '</b><span>очки</span></div><div><b>' + res.elims + '</b><span>киллы</span></div><div><b>' + res.best + '</b><span>лучшее</span></div><div><b>' + res.vr + '</b><span>👑 VR</span></div></div>' +
-      '<table class="t-log"><thead><tr><th>Игра</th><th>Место</th><th>Киллы</th><th>Очки</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+      (res.log.length ? '<table class="t-log"><thead><tr><th>Игра</th><th>Место</th><th>Киллы</th><th>Очки</th></tr></thead><tbody>' + rows + '</tbody></table>' : '') +
       (trophyTxt ? '<div class="t-tr">' + trophyTxt + '</div>' : "") +
       '<div class="t-rw-row">Приз: <b>$' + fnum(prize) + '</b> · <b>+' + pr + ' PR</b> · Опыт: <b>+' + xpAll + '</b>' + (ups.length ? ' · <span class="accent">' + ups.join(" ") + '</span>' : "") + '</div>' +
       '<button class="btn btn-primary btn-block" id="tourDone" type="button">В следующий день →</button>';
