@@ -507,6 +507,7 @@
     if (rank <= lobby * 0.5) return Math.round(top * 0.02); return 0;
   }
   var tourModal = $("#tourModal"), pendingDay = false;
+  window.addEventListener("resize", function () { if (!tourModal.hidden && tState && tState.zones) layoutZone(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-tclose]"), function (el) { el.addEventListener("click", function () { tourModal.hidden = true; if (pendingDay) { pendingDay = false; advanceDay(); } }); });
   var tState = null;
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -514,22 +515,26 @@
   function optCard(o) { return '<button class="t-opt" data-opt="' + o.id + '" type="button"><span class="t-opt-ic">' + o.ic + '</span><b>' + o.n + '</b><span>' + o.d + '</span></button>'; }
 
   // Этап 1 — карта высадки (реальная карта Fortnite, клик по локации)
+  function tourCard() { return tourModal.querySelector(".tour-card"); }
   function openTournament(ev) {
     tState = { ev: ev, poi: null };
     $("#tourTitle").textContent = ev.name;
-    renderMap();
+    var c = tourCard(); if (c) c.classList.add("tour-big");
     pendingDay = false;
     tourModal.hidden = false;
+    renderMap();
   }
   function renderMap() {
     var ev = tState.ev, sel = tState.poi, p = sel ? poiOf(sel) : null, h = sel ? heatOf(sel) : null;
     $("#tourBody").innerHTML =
-      '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · ' + ev.lobby + ' игроков · фонд от $' + fnum(ev.prizeTop) + '</p>' +
-      '<h4 class="t-q">Куда высаживаешься?</h4>' +
-      '<div class="br-map br-pick" id="brMap"><div class="br-pois">' + poiMarkers(sel) + '</div></div>' +
-      '<div class="map-legend"><span><i style="background:#ff6b4a"></i>Жарко</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо</span></div>' +
-      '<div class="map-pick">' + (p ? 'Высадка: <b style="color:' + h.c + '">' + esc(p.n) + '</b>' + (h.fit >= 0 ? ' · тащит ' + SHORT[h.fit] : '') : 'Нажми на локацию на карте') + '</div>' +
-      '<button class="btn btn-primary btn-block" id="tDrop" type="button"' + (sel ? "" : " disabled") + '>' + (sel ? "Высадиться →" : "Выбери локацию") + '</button>';
+      '<div class="br-layout"><div class="br-side">' +
+        '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · ' + ev.lobby + ' игроков · фонд от $' + fnum(ev.prizeTop) + '</p>' +
+        '<h4 class="t-q">Куда высаживаешься?</h4>' +
+        '<div class="map-legend"><span><i style="background:#ff6b4a"></i>Жарко</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо</span></div>' +
+        '<div class="map-pick">' + (p ? 'Высадка: <b style="color:' + h.c + '">' + esc(p.n) + '</b>' + (h.fit >= 0 ? ' · тащит ' + SHORT[h.fit] : '') : 'Нажми на локацию на карте') + '</div>' +
+        '<div class="br-side-foot"><button class="btn btn-primary btn-block" id="tDrop" type="button"' + (sel ? "" : " disabled") + '>' + (sel ? "Высадиться →" : "Выбери локацию") + '</button></div>' +
+      '</div>' +
+      '<div class="br-stage"><div class="br-map br-pick" id="brMap"><div class="br-pois">' + poiMarkers(sel) + '</div></div></div></div>';
   }
   // делегирование кликов (навешивается один раз)
   $("#tourBody").addEventListener("click", function (e) {
@@ -560,11 +565,14 @@
     tState.baseMod = addMod({ perf: 0, varMul: 1, killBias: 0 }, heatOf(tState.poi));
     tState.aliveCurve = [N, Math.round(N * 0.62), Math.round(N * 0.4), Math.round(N * 0.26), Math.round(N * 0.16), Math.round(N * 0.09), Math.round(N * 0.04), 1];
     $("#tourBody").innerHTML =
-      '<div class="br-hud"><span id="brPhase">Высадка · ' + esc(drop.n) + '</span><span>Живых <b id="brAlive">' + N + '</b> · зона <b id="brZone">1</b>/8 · киллы <b id="brKills">0</b></span></div>' +
-      '<div class="br-map" id="brMap"><div class="br-zone" id="brZoneC"></div><div class="br-players" id="brPlayers">' +
-      players.map(function (p) { return '<i class="br-arrow' + (p.me ? " me" : "") + '" style="left:' + p.x + '%;top:' + p.y + '%"></i>'; }).join("") + '</div></div>' +
-      '<div id="tMid"></div>';
-    layoutZone();
+      '<div class="br-layout"><div class="br-side">' +
+        '<div class="br-side-head" id="brPhase">Высадка · ' + esc(drop.n) + '</div>' +
+        '<div class="br-stats"><div><b id="brAlive">' + N + '</b><span>живых</span></div><div><b id="brZone">1</b><span>зона/8</span></div><div><b id="brKills">0</b><span>киллы</span></div></div>' +
+        '<div id="tMid"></div>' +
+      '</div>' +
+      '<div class="br-stage"><div class="br-map" id="brMap"><div class="br-zone" id="brZoneC"></div><div class="br-players" id="brPlayers">' +
+      players.map(function (p) { return '<i class="br-arrow' + (p.me ? " me" : "") + '" style="left:' + p.x + '%;top:' + p.y + '%"></i>'; }).join("") + '</div></div></div></div>';
+    layoutZone(); requestAnimationFrame(layoutZone); setTimeout(layoutZone, 40);
     showPhase(0);
   }
   function layoutZone() {
@@ -647,6 +655,7 @@
   }
   // Этап 4 — итог + награды
   function showResult(res) {
+    var c = tourCard(); if (c) c.classList.remove("tour-big");
     var ev = tState.ev;
     var prize = prizeOf(res.rank, ev.lobby, ev.prizeTop), pr = prGain(res.rank, ev.lobby, ev.prW);
     var ups = [], xpAll = Math.round(8 + (1 - res.rank / ev.lobby) * 34);

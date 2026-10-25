@@ -550,7 +550,27 @@ p { margin: 0; }
 .t-dec-q { font-size: 14px; margin-bottom: 10px; } .t-dec-q b { color: var(--accent); }
 /* battle-royale map (real Fortnite map background) */
 .tour-card { max-height: calc(100vh - 40px); overflow-y: auto; }
-.br-map { position: relative; width: 100%; max-width: 420px; margin: 0 auto 8px; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; border: 1px solid var(--line2); background: #0a2036 url("assets/fnmap.webp") center / cover; }
+.br-map { position: relative; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; border: 1px solid var(--line2); background: #0a2036 url("assets/fnmap.webp") center / cover; }
+/* большой турнир на весь экран: панель слева + карта справа */
+.tour-card.tour-big { width: 96vw; max-width: 1220px; height: 90vh; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
+.tour-card.tour-big #tourBody { flex: 1; min-height: 0; }
+.br-layout { display: flex; gap: 16px; height: 100%; min-height: 0; }
+.br-side { width: 330px; flex: none; display: flex; flex-direction: column; overflow-y: auto; }
+.br-side-head { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .04em; font-size: 15px; color: var(--accent); margin-bottom: 12px; }
+.br-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.br-stats div { background: rgba(255, 255, 255, .05); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 4px; text-align: center; }
+.br-stats b { display: block; font-family: "Oswald"; font-weight: 700; font-size: 22px; color: var(--ink); }
+.br-stats span { font-size: 10px; text-transform: uppercase; letter-spacing: .03em; color: var(--faint); }
+.br-side-foot { margin-top: auto; padding-top: 12px; }
+.br-stage { flex: 1; min-width: 0; display: grid; place-items: center; background: rgba(0, 0, 0, .28); border-radius: 12px; padding: 8px; }
+.br-stage .br-map { margin: 0; width: min(100%, 78vh); height: auto; }
+@media (max-width: 760px) {
+  .tour-card.tour-big { width: 96vw; height: 92vh; }
+  .br-layout { flex-direction: column; gap: 10px; }
+  .br-stage { order: 1; flex: none; height: 52vh; }
+  .br-side { width: auto; order: 2; overflow: visible; }
+  .br-side-foot { margin-top: 12px; }
+}
 .br-map.br-pick { cursor: crosshair; }
 .br-pois { position: absolute; inset: 0; }
 .br-poi { position: absolute; transform: translate(-50%, -50%); background: none; border: none; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 3; }
