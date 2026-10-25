@@ -714,3 +714,33 @@ p { margin: 0; }
 @media (max-width: 920px) { .draft-grid { grid-template-columns: 1fr; } .team-panel { position: static; } .dh-sum { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 760px) { .modes-grid { grid-template-columns: 1fr; } }
 @media (max-width: 620px) { .two-col { grid-template-columns: 1fr; } .ladder { grid-template-columns: repeat(4, 1fr); } }
+
+/* ===================== Магазин (девайсы + переезд) ===================== */
+.shop-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.shop-bal { text-align: right; flex: none; }
+.shop-bal span { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--faint); }
+.shop-bal b { display: block; font-family: "Oswald"; font-size: 24px; color: var(--green); }
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 8px; }
+.shop-card { display: flex; gap: 12px; align-items: flex-start; background: rgba(255, 255, 255, .04); border: 1px solid var(--line2); border-radius: 12px; padding: 12px; }
+.shop-card.relo { background: rgba(111, 224, 255, .07); border-color: rgba(111, 224, 255, .3); }
+.shop-ic { font-size: 30px; line-height: 1; }
+.shop-body { flex: 1; min-width: 0; } .shop-body > b { font-family: "Oswald"; text-transform: uppercase; font-size: 15px; display: block; }
+.shop-cur { display: block; font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
+.shop-next { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .shop-next span { font-size: 12.5px; color: var(--ink2); }
+.shop-max { font-family: "Oswald"; text-transform: uppercase; font-size: 12px; color: var(--accent); }
+.btn-sm { font-family: "Oswald"; text-transform: uppercase; font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: none; cursor: pointer; white-space: nowrap; transition: .14s; }
+.btn-sm.btn-primary { background: var(--accent); color: var(--accent-ink); } .btn-sm.btn-primary:hover { filter: brightness(1.08); }
+.btn-sm.btn-off { background: rgba(255, 255, 255, .07); color: var(--faint); cursor: not-allowed; }
+.relo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 8px 0 14px; }
+.relo-opt { display: flex; flex-direction: column; align-items: center; gap: 4px; background: rgba(255, 255, 255, .05); border: 1.5px solid var(--line2); border-radius: 12px; padding: 12px 8px; cursor: pointer; transition: .14s; }
+.relo-opt:hover:not(:disabled) { border-color: var(--cyan); transform: translateY(-2px); }
+.relo-opt:disabled { opacity: .5; cursor: default; }
+.relo-opt .flag { width: 42px; height: 28px; border-radius: 4px; object-fit: cover; border: 1px solid var(--line2); }
+.relo-c { font-family: "Oswald"; text-transform: uppercase; font-size: 13px; text-align: center; }
+.relo-p { font-size: 11px; color: var(--muted); }
+.relo-opt.cur { border-color: var(--accent); } .relo-opt.cur .relo-p { color: var(--accent); }
+.moves-path { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line2); }
+.mp-label { font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--faint); letter-spacing: .05em; }
+.mp-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 7px; }
+.mp-c { font-family: "Oswald"; font-size: 14px; color: var(--ink2); } .mp-c.now { color: var(--accent); font-weight: 700; }
+.mp-arr { color: var(--faint); }

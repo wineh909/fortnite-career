@@ -23,12 +23,24 @@
     xp: (function () { try { var p = JSON.parse(g("fnc_statxp")); if (p && p.length === 6) return p.map(Number); } catch (e) {} return [0, 0, 0, 0, 0, 0]; })(),
     energy: numk("fnc_energy", 100), mood: numk("fnc_mood", 62),
     day: numk("fnc_day", 1), season: numk("fnc_season", 1),
-    pr: numk("fnc_pr", 0), earnings: numk("fnc_earnings", 0)
+    pr: numk("fnc_pr", 0), earnings: numk("fnc_earnings", 0),
+    balance: numk("fnc_balance", numk("fnc_earnings", 0)), // тратимые деньги
+    gear: loadObj("fnc_gear"), moves: loadArr("fnc_moves")
   };
   var flagUrl = function (iso) { return "https://flagcdn.com/w320/" + iso + ".png"; };
   function ageBonus(a) { a = +a || 20; return a <= 16 ? 6 : a <= 18 ? 4 : a <= 21 ? 2 : a <= 25 ? 0 : a <= 30 ? -2 : -4; }
   function baseOvr() { return Math.round(P.stats.reduce(function (a, b) { return a + b; }, 0) / 6); }
-  function overallOf() { return Math.max(30, Math.min(99, baseOvr() + ageBonus(P.age))); }
+  // магазин девайсов: лучший сетап = выше рейтинг (с нищими играешь хуже)
+  var GEAR = [
+    { id: "monitor", n: "Монитор", ic: "🖥️", tiers: [{ n: "Офисный 60 Гц", b: 0, p: 0 }, { n: "144 Гц игровой", b: 1, p: 1000 }, { n: "240 Гц", b: 2, p: 3000 }, { n: "360 Гц про", b: 3, p: 8000 }] },
+    { id: "pc", n: "Компьютер", ic: "💻", tiers: [{ n: "Старый ноут", b: 0, p: 0 }, { n: "Средний ПК", b: 1, p: 1500 }, { n: "Игровой ПК", b: 2, p: 5000 }, { n: "Топ-риг", b: 3, p: 12000 }] },
+    { id: "periph", n: "Мышь и клава", ic: "🖱️", tiers: [{ n: "Офисные", b: 0, p: 0 }, { n: "Игровые", b: 1, p: 800 }, { n: "Киберспорт", b: 2, p: 2500 }] },
+    { id: "net", n: "Интернет", ic: "📶", tiers: [{ n: "Мобильный", b: 0, p: 0 }, { n: "Домашний", b: 1, p: 1200 }, { n: "Оптика, низкий пинг", b: 2, p: 3500 }] },
+    { id: "chair", n: "Кресло и сетап", ic: "🪑", tiers: [{ n: "Табуретка", b: 0, p: 0 }, { n: "Игровое кресло", b: 1, p: 700 }, { n: "Про-сетап", b: 2, p: 2200 }] }
+  ];
+  function gearTier(id) { var t = P.gear[id]; return t != null ? t : 0; }
+  function gearBonus() { var s = 0; GEAR.forEach(function (g) { var tr = g.tiers[gearTier(g.id)]; if (tr) s += tr.b; }); return s; }
+  function overallOf() { return Math.max(30, Math.min(99, baseOvr() + ageBonus(P.age) + gearBonus())); }
   // редкость — шкала Fortnite (цвета как в игре)
   function rarityOf(o) { return o >= 95 ? { n: "Мифический", c: "#ffd84d" } : o >= 90 ? { n: "Легендарный", c: "#ff9b3d" } : o >= 80 ? { n: "Эпический", c: "#b06bff" } : o >= 70 ? { n: "Редкий", c: "#46b6ff" } : o >= 60 ? { n: "Необычный", c: "#3fe07a" } : { n: "Обычный", c: "#9aa6bf" }; }
   function divOf(o) { return o >= 82 ? 1 : o >= 75 ? 2 : o >= 68 ? 3 : o >= 61 ? 4 : 5; }
@@ -43,6 +55,8 @@
     localStorage.setItem("fnc_statxp", JSON.stringify(P.xp));
     localStorage.setItem("fnc_day", P.day); localStorage.setItem("fnc_season", P.season);
     localStorage.setItem("fnc_pr", P.pr); localStorage.setItem("fnc_earnings", P.earnings);
+    localStorage.setItem("fnc_balance", P.balance); localStorage.setItem("fnc_gear", JSON.stringify(P.gear));
+    localStorage.setItem("fnc_moves", JSON.stringify(P.moves));
   }
 
   /* ---------- календарь сезона (по образцу FNCS) ---------- */
@@ -66,7 +80,7 @@
   /* ---------- карточка / кольца ---------- */
   function avHtml(big) { return P.avatar ? '<img src="' + P.avatar + '" alt="">' : '<span class="noav">нет' + (big ? "<br>" : " ") + 'фото</span>'; }
   function cardHtml(mini) {
-    var o = overallOf(), r = rarityOf(o), b = baseOvr(), bo = ageBonus(P.age);
+    var o = overallOf(), r = rarityOf(o), b = baseOvr(), bo = ageBonus(P.age) + gearBonus();
     var rows = STAT_KEYS.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + P.stats[i] + '</span><span class="s-bar"><i style="width:' + P.stats[i] + '%"></i></span></div>'; }).join("");
     return '<div class="pcard' + (mini ? " mini" : "") + '" style="--rar:' + r.c + '">' +
       '<div class="pcard-top"><div><div class="pc-ovr">' + o + '</div><div class="pc-base">' + b + ' <span>' + (bo >= 0 ? "+" : "") + bo + '</span></div>' +
@@ -92,7 +106,7 @@
       '<div class="pb-name"><h2>' + esc(P.nick) + '</h2><div class="pb-meta">' + P.age + ' лет · Дивизион ' + divOf(o) + ' · ' + P.pos + ' <img class="flag" src="' + flagUrl(P.flag) + '" alt=""></div></div></div>' +
       '<div class="pb-mid"><span class="pb-rating"><b>' + o + '</b><span>Рейтинг</span></span>' +
       '<span class="pb-stat"><b>' + fnum(P.pr) + '</b><span>PR</span></span>' +
-      '<span class="pb-stat"><b>$' + fnum(P.earnings) + '</b><span>Заработок</span></span>' +
+      '<span class="pb-stat"><b>$' + fnum(P.balance) + '</b><span>Баланс</span></span>' +
       '<div class="pb-energy"><div class="k">Энергия</div><div class="bar"><i style="width:' + P.energy + '%"></i></div></div></div>' +
       '<div class="pb-season"><div class="c"><b>' + P.season + '</b><span>Сезон</span></div><div class="c"><b>' + P.day + '</b><span>День / ' + SEASON_LEN + '</span></div><div class="c"><b>' + P.ping + '</b><span>Пинг</span></div></div></div>';
   }
@@ -101,7 +115,7 @@
   var cur = "center";
   var TABS = {
     center: renderCenter, profile: renderProfile, career: renderCareer, training: renderTraining,
-    calendar: renderCalendar, tables: renderTables, pr: renderPR, earnings: renderEarnings, history: renderHistory
+    calendar: renderCalendar, tables: renderTables, pr: renderPR, earnings: renderEarnings, shop: renderShop, history: renderHistory
   };
   function setTab(name) {
     if (!TABS[name]) name = "center";
@@ -125,6 +139,7 @@
         el.addEventListener("click", function () { openTrain(DRILLS.filter(function (d) { return d.id === el.getAttribute("data-drill"); })[0]); });
       });
     }
+    if (name === "shop") wireShop();
   }
   var confirmSkip = false;
 
@@ -174,12 +189,15 @@
 
   /* ---------- Профиль ---------- */
   function renderProfile() {
-    var o = overallOf();
-    var rows = [["Никнейм", esc(P.nick)], ["Возраст", P.age + " лет"], ["Регион", esc(P.countryName)], ["Пинг", P.ping + " мс"], ["Позиция", P.pos === "ИГЛ" ? "IGL (лидер)" : "Фрагер"], ["Рейтинг", o + " · " + rarityOf(o).n], ["Дивизион", divOf(o) + " · " + divName(divOf(o))], ["PR (Power Rankings)", fnum(P.pr)], ["Сервер", "Франкфурт"]];
+    var o = overallOf(), gb = gearBonus();
+    var rows = [["Никнейм", esc(P.nick)], ["Возраст", P.age + " лет"], ["Страна", esc(P.countryName)], ["Пинг", P.ping + " мс"], ["Позиция", P.pos === "ИГЛ" ? "IGL (лидер)" : "Фрагер"], ["Рейтинг", o + " · " + rarityOf(o).n], ["Дивизион", divOf(o) + " · " + divName(divOf(o))], ["Сетап (девайсы)", gb ? "+" + gb + " к рейтингу" : "нищий — +0"], ["PR (Power Rankings)", fnum(P.pr)]];
+    var chain = (P.moves && P.moves.length) ? P.moves : [P.countryName];
+    var movesHtml = chain.length > 1 ? '<div class="moves-path"><span class="mp-label">Путь: где играл</span><div class="mp-chain">' + chain.map(function (c, i) { return (i ? '<span class="mp-arr">→</span>' : "") + '<span class="mp-c' + (i === chain.length - 1 ? " now" : "") + '">' + esc(c) + '</span>'; }).join("") + '</div></div>' : "";
     return '<div class="two-col"><div>' + cardHtml(false) + '</div><div class="fcard"><p class="panel-title">Профиль игрока</p>' +
       '<div class="kv-list">' + rows.map(function (r) { return '<div class="kv"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>'; }).join("") + '</div>' +
+      movesHtml +
       '<div class="earn-total"><span>Весь заработок с&nbsp;турниров</span><b>$' + fnum(P.earnings) + '</b></div>' +
-      '<p class="kv-note">Статы растут на&nbsp;тренировках. PR и&nbsp;призовые копятся с&nbsp;турниров по&nbsp;календарю.</p></div></div>';
+      '<p class="kv-note">Статы растут на&nbsp;тренировках, девайсы из&nbsp;магазина добавляют рейтинг. PR и&nbsp;призовые копятся с&nbsp;турниров.</p></div></div>';
   }
 
   /* ---------- Карьера ---------- */
@@ -269,6 +287,69 @@
       '<div class="big-stat"><b>$' + fnum(P.earnings) + '</b><span>весь заработок с&nbsp;турниров · место #' + myRank + ' среди игроков</span></div>' +
       '<p class="blk-sub">Каждое попадание в&nbsp;топ на&nbsp;турнире приносит призовые. Крупные деньги — на&nbsp;Мейджорах и&nbsp;финалах.</p></div>' +
       '<div class="fcard"><p class="panel-title">Рейтинг по призовым</p><table class="lb"><thead><tr><th>#</th><th>Игрок</th><th>Призовые</th></tr></thead><tbody>' + rows + '</tbody></table></div>' + pay;
+  }
+
+  /* ---------- Магазин (девайсы + переезд) ---------- */
+  var RELO_COST = 5000;
+  var RELO = [
+    { c: "Германия", iso: "de", ping: 9 }, { c: "Великобритания", iso: "gb", ping: 17 }, { c: "Франция", iso: "fr", ping: 17 },
+    { c: "Швеция", iso: "se", ping: 27 }, { c: "Испания", iso: "es", ping: 31 }, { c: "Польша", iso: "pl", ping: 21 },
+    { c: "США", iso: "us", ping: 95 }, { c: "Канада", iso: "ca", ping: 99 }, { c: "Бразилия", iso: "br", ping: 120 },
+    { c: "Япония", iso: "jp", ping: 230 }, { c: "Южная Корея", iso: "kr", ping: 210 }, { c: "Австралия", iso: "au", ping: 290 }, { c: "ОАЭ", iso: "ae", ping: 70 }
+  ];
+  function moneyOk(p) { return P.balance >= p; }
+  function renderShop() {
+    var cards = GEAR.map(function (g) {
+      var cur = gearTier(g.id), curT = g.tiers[cur], next = g.tiers[cur + 1];
+      return '<div class="shop-card"><div class="shop-ic">' + g.ic + '</div><div class="shop-body"><b>' + g.n + '</b>' +
+        '<span class="shop-cur">Сейчас: ' + curT.n + (curT.b ? ' · +' + curT.b + ' рейтинг' : '') + '</span>' +
+        (next ? '<div class="shop-next"><span>' + next.n + ' · <b class="accent">+' + next.b + '</b> рейтинг</span>' +
+          '<button class="btn btn-sm' + (moneyOk(next.p) ? ' btn-primary' : ' btn-off') + '" data-buy-gear="' + g.id + '"' + (moneyOk(next.p) ? '' : ' disabled') + ' type="button">$' + fnum(next.p) + '</button></div>'
+          : '<span class="shop-max">Максимум ⭐</span>') + '</div></div>';
+    }).join("");
+    return '<div class="fcard"><div class="shop-head"><div><p class="panel-title">Магазин · девайсы</p><h3 class="blk-h">Апгрейдь сетап</h3></div><div class="shop-bal"><span>Баланс</span><b>$' + fnum(P.balance) + '</b></div></div>' +
+      '<p class="blk-sub">Чем лучше девайсы — тем выше рейтинг и&nbsp;результаты. С&nbsp;нищим сетапом играешь хуже. Деньги капают с&nbsp;турниров. Сейчас сетап даёт <b class="accent">+' + gearBonus() + '</b> к&nbsp;рейтингу.</p>' +
+      '<div class="shop-grid">' + cards + '</div></div>' +
+      '<div class="fcard"><p class="panel-title">Переезд</p><div class="shop-card relo"><div class="shop-ic">✈️</div><div class="shop-body"><b>Переезд в другую страну</b>' +
+      '<span class="shop-cur">Сменишь страну и&nbsp;регион. В&nbsp;профиле останется история переездов.</span>' +
+      '<div class="shop-next"><span>Сейчас: <b>' + esc(P.countryName) + '</b></span><button class="btn btn-sm' + (moneyOk(RELO_COST) ? ' btn-primary' : ' btn-off') + '" id="reloBtn"' + (moneyOk(RELO_COST) ? '' : ' disabled') + ' type="button">$' + fnum(RELO_COST) + '</button></div></div></div></div>';
+  }
+  function renderRelocation() {
+    var cards = RELO.map(function (r) {
+      var cur = r.c === P.countryName;
+      return '<button class="relo-opt' + (cur ? " cur" : "") + '" data-relo-to="' + r.iso + "|" + r.c + "|" + r.ping + '"' + (cur ? " disabled" : "") + ' type="button">' +
+        '<img class="flag" src="' + flagUrl(r.iso) + '" alt=""><span class="relo-c">' + esc(r.c) + '</span><span class="relo-p">' + (cur ? "ты здесь" : "пинг " + r.ping + " мс") + '</span></button>';
+    }).join("");
+    return '<div class="fcard"><p class="panel-title">Переезд · $' + fnum(RELO_COST) + '</p><h3 class="blk-h">Куда переезжаешь?</h3>' +
+      '<p class="blk-sub">Выбери новую страну — сменится регион и&nbsp;пинг, а&nbsp;в&nbsp;профиле появится история переездов.</p>' +
+      '<div class="relo-grid">' + cards + '</div><button class="btn btn-ghost btn-block" id="reloBack" type="button">← Назад в магазин</button></div>';
+  }
+  function wireShop() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-buy-gear]"), function (b) { b.addEventListener("click", function () { buyGear(b.getAttribute("data-buy-gear")); }); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-relo-to]"), function (b) { b.addEventListener("click", function () { doRelo(b.getAttribute("data-relo-to")); }); });
+    var rb = $("#reloBtn"); if (rb) rb.addEventListener("click", function () { $("#tabContent").innerHTML = renderRelocation(); wireShop(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+    var back = $("#reloBack"); if (back) back.addEventListener("click", function () { $("#tabContent").innerHTML = renderShop(); wireShop(); });
+  }
+  function buyGear(id) {
+    var g2 = GEAR.filter(function (x) { return x.id === id; })[0]; if (!g2) return;
+    var cur = gearTier(id), next = g2.tiers[cur + 1]; if (!next) return;
+    if (P.balance < next.p) { flash("Не хватает денег."); return; }
+    P.balance -= next.p; P.gear[id] = cur + 1; save(); buildBar();
+    $("#tabContent").innerHTML = renderShop(); wireShop();
+    flash(g2.n + ": " + next.n + " · +" + next.b + " к рейтингу!");
+  }
+  function doRelo(val) {
+    if (P.balance < RELO_COST) { flash("Не хватает денег на переезд."); return; }
+    var parts = val.split("|"), iso = parts[0], c = parts[1], ping = +parts[2];
+    if (c === P.countryName) return;
+    P.balance -= RELO_COST;
+    if (!P.moves || !P.moves.length) P.moves = [P.countryName];
+    P.moves.push(c);
+    P.countryName = c; P.flag = iso; P.ping = ping;
+    localStorage.setItem("fnc_country_name", c); localStorage.setItem("fnc_country_flag", iso); localStorage.setItem("fnc_ping", ping);
+    save(); buildBar();
+    $("#tabContent").innerHTML = renderShop(); wireShop();
+    flash("Переезд в " + c + "! Новый пинг " + ping + " мс.");
   }
 
   /* ---------- История ---------- */
@@ -660,7 +741,7 @@
     var prize = prizeOf(res.rank, ev.lobby, ev.prizeTop), pr = prGain(res.rank, ev.lobby, ev.prW);
     var ups = [], xpAll = Math.round(8 + (1 - res.rank / ev.lobby) * 34);
     for (var i = 0; i < 6; i++) { P.xp[i] += xpAll; while (P.xp[i] >= XP_PER && P.stats[i] < 99) { P.stats[i]++; P.xp[i] -= XP_PER; ups.push(SHORT[i] + " +1"); } if (P.stats[i] >= 99) P.xp[i] = 0; }
-    P.earnings += prize; P.pr += pr; P.mood = Math.min(100, P.mood + (res.rank <= 10 ? 6 : -2));
+    P.earnings += prize; P.balance += prize; P.pr += pr; P.mood = Math.min(100, P.mood + (res.rank <= 10 ? 6 : -2));
     save();
     var hist = loadArr("fnc_history");
     hist.unshift({ name: ev.name, date: Date.now(), rank: res.rank, lobby: res.lobby, total: res.total, elims: res.elims, best: res.best, vr: res.vr, prize: prize, pr: pr });
