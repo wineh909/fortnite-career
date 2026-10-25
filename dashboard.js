@@ -442,21 +442,66 @@
   function myRankNow(sim) { var t = sim.totals[0], rank = 1; for (var j = 1; j < sim.N; j++) if (sim.totals[j] > t) rank++; return rank; }
   function finishSim(sim) { return { total: sim.totals[0], elims: sim.myElims, best: sim.best, vr: sim.vr, rank: myRankNow(sim), lobby: sim.N, games: sim.ev.games, log: sim.log }; }
 
-  // выборы игрока на турнир (зависят от статов): СТР=0 СТРОЙ=1 РОТ=2 КЛЧ=3 IQ=4 СТБ=5
-  var DROPS = [
-    { id: "hot", ic: "🔥", n: "Горячая точка", d: "Много боёв и фрагов, но риск ранней смерти. Любит Стрельбу.", fit: 0, perf: 0, varMul: 1.3, killBias: 2 },
-    { id: "mid", ic: "⚖️", n: "Средняя зона", d: "Баланс фрагов и места, без перекосов.", fit: -1, perf: 1, varMul: 1, killBias: 0 },
-    { id: "edge", ic: "🛡️", n: "Тихий край", d: "Безопасно, упор на место. Любит Стабильность.", fit: 5, perf: 0, varMul: 0.78, killBias: -1 }
+  // точки высадки на карте (как в Fortnite) — heat задаёт модификатор, завязан на статы
+  // СТР=0 СТРОЙ=1 РОТ=2 КЛЧ=3 IQ=4 СТБ=5
+  var HEAT = {
+    hot: { lbl: "Жарко", c: "#ff6b4a", perf: 0, varMul: 1.32, killBias: 2, fit: 0 },
+    mid: { lbl: "Средне", c: "#ffd84d", perf: 1, varMul: 1, killBias: 0, fit: -1 },
+    safe: { lbl: "Тихо", c: "#3fe07a", perf: 0, varMul: 0.78, killBias: -1, fit: 5 }
+  };
+  var POIS = [
+    { id: "oxr", n: "O.X.R. HQ", heat: "hot", x: 50, y: 38 },
+    { id: "dojo", n: "Demon's Dojo", heat: "hot", x: 70, y: 27 },
+    { id: "crime", n: "Crime City", heat: "hot", x: 31, y: 52 },
+    { id: "shiny", n: "Shiny Shafts", heat: "mid", x: 23, y: 31 },
+    { id: "meadows", n: "Masked Meadows", heat: "mid", x: 58, y: 58 },
+    { id: "swarm", n: "Swarmy Stash", heat: "mid", x: 80, y: 50 },
+    { id: "hopeful", n: "Hopeful Heights", heat: "safe", x: 43, y: 18 },
+    { id: "oasis", n: "Outlaw Oasis", heat: "safe", x: 16, y: 66 },
+    { id: "frogs", n: "Fighting Frogs", heat: "safe", x: 85, y: 73 }
   ];
-  var STYLES = [
-    { id: "aggro", ic: "⚔️", n: "Агрессия", d: "Ищи бои, набивай киллы. Любит Клатч.", fit: 3, perf: 0, varMul: 1.18, killBias: 2 },
-    { id: "adapt", ic: "🧠", n: "По ситуации", d: "Читай игру и адаптируйся. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 1, killBias: 0 },
-    { id: "safe", ic: "📦", n: "На выживание", d: "Ротируй рано, копи зону. Любит Ротации.", fit: 2, perf: 0, varMul: 0.84, killBias: -1 }
+  // забег по зонам: 4 этапа (действие → проходят зоны → действие)
+  var PHASES = [
+    { title: "Ранняя игра", sub: "Ты высадился. Как играешь первые зоны?", opts: [
+      { id: "fight", ic: "⚔️", n: "Драться за точку", d: "Забрать лут в бою — киллы, но риск. Любит Стрельбу.", fit: 0, perf: 0, varMul: 1.25, killBias: 2 },
+      { id: "loot", ic: "🎒", n: "Тихо лутаться", d: "Собрать всё без боёв, баланс. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 1, killBias: 0 },
+      { id: "erot", ic: "🧭", n: "Сразу ротация", d: "Уйти в зону пораньше, безопасно. Любит Ротации.", fit: 2, perf: 0, varMul: 0.82, killBias: -1 }
+    ] },
+    { title: "Мид-гейм", sub: "Зона сжимается. Что делаешь в середине?", opts: [
+      { id: "aggro", ic: "🔫", n: "Искать бои", d: "Добивать команды ради киллов. Любит Клатч.", fit: 3, perf: 0, varMul: 1.2, killBias: 2 },
+      { id: "mats", ic: "🧱", n: "Копить материалы", d: "Фармить и строить экономику. Любит Стройку.", fit: 1, perf: 1, varMul: 1, killBias: 0 },
+      { id: "mrot", ic: "🛡️", n: "Ранние ротации", d: "Держаться края зоны, плейсмент. Любит Ротации.", fit: 2, perf: 0, varMul: 0.82, killBias: -1 }
+    ] },
+    { title: "Поздняя игра", sub: "Остались сильнейшие. Как берёшь позицию?", opts: [
+      { id: "high", ic: "⛰️", n: "Забрать хайграунд", d: "Строить вверх, держать высоту. Любит Стройку.", fit: 1, perf: 1, varMul: 1, killBias: 0 },
+      { id: "take", ic: "💥", n: "Отжать позицию", d: "Выбить соперников с точки. Любит Клатч.", fit: 3, perf: 0, varMul: 1.22, killBias: 2 },
+      { id: "passive", ic: "🧊", n: "На плейсмент", d: "Не лезть, тянуть место. Любит Стабильность.", fit: 5, perf: 0, varMul: 0.8, killBias: -1 }
+    ] },
+    { title: "Эндгейм", sub: "Финальный круг. Решающий момент.", opts: [
+      { id: "push", ic: "🚀", n: "Пушить на 1 место", d: "Идти на победу, максимум риска. Любит Клатч.", fit: 3, perf: 2, varMul: 1.3, killBias: 2 },
+      { id: "place", ic: "🎯", n: "Чистый плейсмент", d: "Отсидеться ради очков за место. Любит Стабильность.", fit: 5, perf: 1, varMul: 0.75, killBias: -1 },
+      { id: "read", ic: "🧠", n: "Читать зону", d: "Угадать круг и занять центр. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 0.9, killBias: 0 }
+    ] }
   ];
-  var DECISIONS = [
-    { id: "push", ic: "🚀", n: "Идти на всё", d: "Рискнуть ради топа — больше разброс, но шанс прыгнуть выше.", perf: 2, varMul: 1.22, killBias: 1 },
-    { id: "hold", ic: "🧊", n: "Держать место", d: "Играть спокойно и не падать. Меньше разброс.", perf: 1, varMul: 0.8, killBias: 0 }
-  ];
+  function splitGames(total, parts) { var b = Math.floor(total / parts), r = total % parts, a = []; for (var i = 0; i < parts; i++) a.push(b + (i < r ? 1 : 0)); return a; }
+  function heatOf(id) { return HEAT[(POIS.filter(function (p) { return p.id === id; })[0] || POIS[0]).heat]; }
+  function poiOf(id) { return POIS.filter(function (p) { return p.id === id; })[0] || POIS[0]; }
+  function dropMapSvg(selId) {
+    var land = "M18,20 C30,10 55,8 72,14 C86,19 92,30 90,44 C88,60 80,74 64,80 C48,86 28,84 16,74 C6,66 6,52 8,42 C9,33 12,26 18,20 Z";
+    var markers = POIS.map(function (p) {
+      var h = HEAT[p.heat], on = p.id === selId;
+      return '<g class="poi' + (on ? " on" : "") + '" data-poi="' + p.id + '" transform="translate(' + p.x + ',' + p.y + ')">' +
+        '<circle class="poi-dot" r="' + (on ? 3.1 : 2.3) + '" fill="' + h.c + '"/>' +
+        '<circle class="poi-hit" r="7" fill="transparent"/>' +
+        '<text class="poi-lbl" y="-3.6">' + p.n + '</text></g>';
+    }).join("");
+    return '<svg class="drop-map" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">' +
+      '<rect x="0" y="0" width="100" height="90" fill="#0a2036"/>' +
+      '<path d="' + land + '" fill="#163a2c" stroke="#2f6b4e" stroke-width="0.8"/>' +
+      '<path d="M40,16 C44,34 38,50 48,64 C54,72 62,74 70,78" fill="none" stroke="#1f4e63" stroke-width="2.2" opacity=".7"/>' +
+      '<path d="M22,46 C40,44 60,50 86,46" fill="none" stroke="#3a3f2a" stroke-width="1.4" opacity=".6"/>' +
+      markers + '</svg>';
+  }
   function fitBonus(idx) { return idx < 0 ? 0 : (P.stats[idx] - 60) / 6; }
   function addMod(m, o) { m.perf += (o.perf || 0) + fitBonus(o.fit != null ? o.fit : -1); m.varMul *= (o.varMul || 1); m.killBias += (o.killBias || 0); return m; }
   function byId2(arr, id) { for (var i = 0; i < arr.length; i++) if (arr[i].id === id) return arr[i]; return arr[0]; }
@@ -470,59 +515,61 @@
   Array.prototype.forEach.call(document.querySelectorAll("[data-tclose]"), function (el) { el.addEventListener("click", function () { tourModal.hidden = true; if (pendingDay) { pendingDay = false; advanceDay(); } }); });
   var tState = null;
   function optCard(o) { return '<button class="t-opt" data-opt="' + o.id + '" type="button"><span class="t-opt-ic">' + o.ic + '</span><b>' + o.n + '</b><span>' + o.d + '</span></button>'; }
-  // Этап 1 — выбор дропа и стиля перед турниром
+  // Этап 1 — карта высадки: выбери точку (POI) как в Fortnite
   function openTournament(ev) {
-    tState = { ev: ev, drop: null, style: null, shownTotal: 0 };
+    tState = { ev: ev, poi: null, phaseIdx: 0, shownTotal: 0, segs: splitGames(ev.games, 4) };
     $("#tourTitle").textContent = ev.name;
-    $("#tourBody").innerHTML =
-      '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · лобби ' + ev.lobby + ' · ' + ev.games + ' игр · фонд от $' + fnum(ev.prizeTop) + '</p>' +
-      '<div class="t-phase"><h4 class="t-q">Где высаживаешься?</h4><div class="t-opts" data-grp="drop">' + DROPS.map(optCard).join("") + '</div>' +
-      '<h4 class="t-q">Стиль на турнир</h4><div class="t-opts" data-grp="style">' + STYLES.map(optCard).join("") + '</div>' +
-      '<button class="btn btn-primary btn-block" id="tGo" type="button" disabled>Выбери дроп и стиль</button></div>';
+    renderMap();
     pendingDay = false;
     tourModal.hidden = false;
   }
+  function renderMap() {
+    var ev = tState.ev, sel = tState.poi, p = sel ? poiOf(sel) : null, h = sel ? heatOf(sel) : null;
+    $("#tourBody").innerHTML =
+      '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · лобби ' + ev.lobby + ' · ' + ev.games + ' игр · фонд от $' + fnum(ev.prizeTop) + '</p>' +
+      '<h4 class="t-q">Куда высаживаешься?</h4>' +
+      '<div class="map-wrap-t">' + dropMapSvg(sel) + '</div>' +
+      '<div class="map-legend"><span><i style="background:#ff6b4a"></i>Жарко — фраги, риск</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо — на место</span></div>' +
+      '<div class="map-pick">' + (p ? '<b style="color:' + h.c + '">' + esc(p.n) + '</b> · ' + h.lbl + (h.fit >= 0 ? ' · тащит ' + SHORT[h.fit] : '') : 'Нажми на точку на карте') + '</div>' +
+      '<button class="btn btn-primary btn-block" id="tDrop" type="button"' + (sel ? "" : " disabled") + '>' + (sel ? "Высадиться →" : "Выбери точку") + '</button>';
+  }
   // делегирование кликов внутри модалки турнира (навешивается один раз)
   $("#tourBody").addEventListener("click", function (e) {
+    if (!tState) return;
+    var poi = e.target.closest("[data-poi]");
+    if (poi) { tState.poi = poi.getAttribute("data-poi"); renderMap(); return; }
+    if (e.target.id === "tDrop" && !e.target.disabled) { landAndStart(); return; }
     var opt = e.target.closest(".t-opt");
-    if (opt && tState) {
-      var grp = opt.parentNode.getAttribute("data-grp");
-      Array.prototype.forEach.call(opt.parentNode.children, function (c) { c.classList.remove("sel"); });
-      opt.classList.add("sel");
-      if (grp === "drop") tState.drop = opt.getAttribute("data-opt");
-      else if (grp === "style") tState.style = opt.getAttribute("data-opt");
-      else if (grp === "decision") { startSecondHalf(opt.getAttribute("data-opt")); return; }
-      var go = $("#tGo"); if (go) { var ready = tState.drop && tState.style; go.disabled = !ready; go.textContent = ready ? "Поехать на турнир →" : "Выбери дроп и стиль"; }
-      return;
-    }
-    if (e.target.id === "tGo" && !e.target.disabled) startTournament();
-    else if (e.target.id === "tourDone") { tourModal.hidden = true; pendingDay = false; advanceDay(); }
+    if (opt && opt.parentNode.getAttribute("data-grp") === "phase") { applyPhase(opt.getAttribute("data-opt")); return; }
+    if (e.target.id === "tourDone") { tourModal.hidden = true; pendingDay = false; advanceDay(); }
   });
-  // Этап 2 — поехали: первая половина игр
-  function startTournament() {
-    var ev = tState.ev;
+  // Этап 2 — высадка: базовый модификатор от точки + запуск забега по зонам
+  function landAndStart() {
+    var ev = tState.ev, h = heatOf(tState.poi);
     tState.sim = newSim(ev);
-    var mod = { perf: 0, varMul: 1, killBias: 0 };
-    addMod(mod, byId2(DROPS, tState.drop)); addMod(mod, byId2(STYLES, tState.style));
-    tState.baseMod = mod;
+    tState.baseMod = addMod({ perf: 0, varMul: 1, killBias: 0 }, h);
     $("#tourBody").innerHTML =
-      '<div class="t-live"><div class="t-live-head"><span>Турнир идёт…</span><span>Очки <b id="tLiveTotal">0</b> · место <b id="tLiveRank">—</b></span></div>' +
+      '<div class="t-live"><div class="t-live-head"><span id="tPhaseLbl">Высадка · ' + esc(poiOf(tState.poi).n) + '</span><span>Очки <b id="tLiveTotal">0</b> · место <b id="tLiveRank">—</b></span></div>' +
       '<div class="t-games" id="tGames"></div><div id="tMid"></div></div>';
-    var half = Math.ceil(ev.games / 2);
-    revealGames(simGames(tState.sim, half, mod), showMidDecision);
+    tState.phaseIdx = 0;
+    showPhase(0);
   }
-  // Этап 3 — решение по ходу: как доигрывать
-  function showMidDecision() {
-    var rank = myRankNow(tState.sim), N = tState.ev.lobby;
-    var msg = rank <= N * 0.1 ? "Ты в топе — " + rank + " место!" : rank <= N * 0.4 ? "Идёшь неплохо: " + rank + " место." : "Пока " + rank + " место — есть куда расти.";
-    $("#tMid").innerHTML = '<div class="t-decision"><p class="t-dec-q">' + msg + ' Осталось ' + (tState.ev.games - tState.sim.g) + ' игр. Как доигрываешь?</p>' +
-      '<div class="t-opts" data-grp="decision">' + DECISIONS.map(optCard).join("") + '</div></div>';
+  // Этап 3 — действие на этапе (зоне); после выбора проходят зоны (игры)
+  function showPhase(i) {
+    var ph = PHASES[i], lbl = $("#tPhaseLbl"); if (lbl) lbl.textContent = ph.title;
+    $("#tMid").innerHTML = '<div class="t-decision"><p class="t-dec-q"><b>' + ph.title + '.</b> ' + ph.sub + '</p>' +
+      '<div class="t-opts" data-grp="phase">' + ph.opts.map(optCard).join("") + '</div></div>';
   }
-  function startSecondHalf(decId) {
-    var mod = { perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias };
-    addMod(mod, byId2(DECISIONS, decId));
-    $("#tMid").innerHTML = "";
-    revealGames(simGames(tState.sim, tState.ev.games - tState.sim.g, mod), function () { showResult(finishSim(tState.sim)); });
+  function applyPhase(optId) {
+    var ph = PHASES[tState.phaseIdx], opt = byId2(ph.opts, optId);
+    var mod = addMod({ perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias }, opt);
+    $("#tMid").innerHTML = '<div class="t-zoneflow">Зона сужается…</div>';
+    var n = tState.segs[tState.phaseIdx];
+    revealGames(simGames(tState.sim, n, mod), function () {
+      tState.phaseIdx++;
+      if (tState.phaseIdx < PHASES.length) showPhase(tState.phaseIdx);
+      else showResult(finishSim(tState.sim));
+    });
   }
   // анимированный показ игр по одной
   function revealGames(rows, done) {
