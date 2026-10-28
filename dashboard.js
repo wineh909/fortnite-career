@@ -40,7 +40,7 @@
   ];
   function gearTier(id) { var t = P.gear[id]; return t != null ? t : 0; }
   function gearBonus() { var s = 0; GEAR.forEach(function (g) { var tr = g.tiers[gearTier(g.id)]; if (tr) s += tr.b; }); return s; }
-  function overallOf() { return Math.max(30, Math.min(99, baseOvr() + ageBonus(P.age) + gearBonus())); }
+  function overallOf() { return Math.max(30, Math.min(99, baseOvr() + ageBonus(P.age))); }
   // редкость — шкала Fortnite (цвета как в игре)
   function rarityOf(o) { return o >= 95 ? { n: "Мифический", c: "#ffd84d" } : o >= 90 ? { n: "Легендарный", c: "#ff9b3d" } : o >= 80 ? { n: "Эпический", c: "#b06bff" } : o >= 70 ? { n: "Редкий", c: "#46b6ff" } : o >= 60 ? { n: "Необычный", c: "#3fe07a" } : { n: "Обычный", c: "#9aa6bf" }; }
   function divOf(o) { return o >= 82 ? 1 : o >= 75 ? 2 : o >= 68 ? 3 : o >= 61 ? 4 : 5; }
@@ -80,7 +80,7 @@
   /* ---------- карточка / кольца ---------- */
   function avHtml(big) { return P.avatar ? '<img src="' + P.avatar + '" alt="">' : '<span class="noav">нет' + (big ? "<br>" : " ") + 'фото</span>'; }
   function cardHtml(mini) {
-    var o = overallOf(), r = rarityOf(o), b = baseOvr(), bo = ageBonus(P.age) + gearBonus();
+    var o = overallOf(), r = rarityOf(o), b = baseOvr(), bo = ageBonus(P.age);
     var rows = STAT_KEYS.map(function (k, i) { return '<div class="pc-row"><span class="s-k">' + k + '</span><span class="s-v">' + P.stats[i] + '</span><span class="s-bar"><i style="width:' + P.stats[i] + '%"></i></span></div>'; }).join("");
     return '<div class="pcard' + (mini ? " mini" : "") + '" style="--rar:' + r.c + '">' +
       '<div class="pcard-top"><div><div class="pc-ovr">' + o + '</div><div class="pc-base">' + b + ' <span>' + (bo >= 0 ? "+" : "") + bo + '</span></div>' +
@@ -190,14 +190,14 @@
   /* ---------- Профиль ---------- */
   function renderProfile() {
     var o = overallOf(), gb = gearBonus();
-    var rows = [["Никнейм", esc(P.nick)], ["Возраст", P.age + " лет"], ["Страна", esc(P.countryName)], ["Пинг", P.ping + " мс"], ["Позиция", P.pos === "ИГЛ" ? "IGL (лидер)" : "Фрагер"], ["Рейтинг", o + " · " + rarityOf(o).n], ["Дивизион", divOf(o) + " · " + divName(divOf(o))], ["Сетап (девайсы)", gb ? "+" + gb + " к рейтингу" : "нищий — +0"], ["PR (Power Rankings)", fnum(P.pr)]];
+    var rows = [["Никнейм", esc(P.nick)], ["Возраст", P.age + " лет"], ["Страна", esc(P.countryName)], ["Пинг", P.ping + " мс"], ["Позиция", P.pos === "ИГЛ" ? "IGL (лидер)" : "Фрагер"], ["Рейтинг", o + " · " + rarityOf(o).n], ["Дивизион", divOf(o) + " · " + divName(divOf(o))], ["Сетап (девайсы)", gb ? "прокачан — дольше живёшь в катках" : "нищий — сливаешься рано"], ["PR (Power Rankings)", fnum(P.pr)]];
     var chain = (P.moves && P.moves.length) ? P.moves : [P.countryName];
     var movesHtml = chain.length > 1 ? '<div class="moves-path"><span class="mp-label">Путь: где играл</span><div class="mp-chain">' + chain.map(function (c, i) { return (i ? '<span class="mp-arr">→</span>' : "") + '<span class="mp-c' + (i === chain.length - 1 ? " now" : "") + '">' + esc(c) + '</span>'; }).join("") + '</div></div>' : "";
     return '<div class="two-col"><div>' + cardHtml(false) + '</div><div class="fcard"><p class="panel-title">Профиль игрока</p>' +
       '<div class="kv-list">' + rows.map(function (r) { return '<div class="kv"><span class="k">' + r[0] + '</span><span class="v">' + r[1] + '</span></div>'; }).join("") + '</div>' +
       movesHtml +
       '<div class="earn-total"><span>Весь заработок с&nbsp;турниров</span><b>$' + fnum(P.earnings) + '</b></div>' +
-      '<p class="kv-note">Статы растут на&nbsp;тренировках, девайсы из&nbsp;магазина добавляют рейтинг. PR и&nbsp;призовые копятся с&nbsp;турниров.</p></div></div>';
+      '<p class="kv-note">Статы растут на&nbsp;тренировках, девайсы из&nbsp;магазина помогают дольше жить в&nbsp;катках. PR и&nbsp;призовые копятся с&nbsp;турниров.</p></div></div>';
   }
 
   /* ---------- Карьера ---------- */
@@ -298,19 +298,27 @@
     { c: "Япония", iso: "jp", ping: 230 }, { c: "Южная Корея", iso: "kr", ping: 210 }, { c: "Австралия", iso: "au", ping: 290 }, { c: "ОАЭ", iso: "ae", ping: 70 }
   ];
   function moneyOk(p) { return P.balance >= p; }
+  var GEAR_SVG = {
+    monitor: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="13" rx="1.5"/><path d="M9 20.5h6M12 16.5v4"/></svg>',
+    pc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="2.5" width="11" height="19" rx="1.5"/><circle cx="12" cy="6" r="1.1"/><path d="M9.5 10h5M9.5 13h5"/></svg>',
+    periph: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7.5" y="3.5" width="9" height="17" rx="4.5"/><path d="M12 3.5v6"/></svg>',
+    net: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9c4.5-4 11.5-4 16 0M7 12.5c3-2.6 7-2.6 10 0M10 16c1.2-1 2.8-1 4 0"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg>',
+    chair: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v8h8V3M7 11h10l-1 5H8zM9 16v5M15 16v5"/></svg>',
+    plane: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13l17-6-5 14-3.5-5-4.5 3 1-6z"/></svg>'
+  };
   function renderShop() {
     var cards = GEAR.map(function (g) {
       var cur = gearTier(g.id), curT = g.tiers[cur], next = g.tiers[cur + 1];
-      return '<div class="shop-card"><div class="shop-ic">' + g.ic + '</div><div class="shop-body"><b>' + g.n + '</b>' +
-        '<span class="shop-cur">Сейчас: ' + curT.n + (curT.b ? ' · +' + curT.b + ' рейтинг' : '') + '</span>' +
-        (next ? '<div class="shop-next"><span>' + next.n + ' · <b class="accent">+' + next.b + '</b> рейтинг</span>' +
+      return '<div class="shop-card"><div class="shop-ic">' + (GEAR_SVG[g.id] || g.ic) + '</div><div class="shop-body"><b>' + g.n + '</b>' +
+        '<span class="shop-cur">Сейчас: ' + curT.n + (curT.b ? ' · +' + curT.b + ' к живучести' : '') + '</span>' +
+        (next ? '<div class="shop-next"><span>' + next.n + ' · <b class="accent">+' + next.b + '</b> живучесть</span>' +
           '<button class="btn btn-sm' + (moneyOk(next.p) ? ' btn-primary' : ' btn-off') + '" data-buy-gear="' + g.id + '"' + (moneyOk(next.p) ? '' : ' disabled') + ' type="button">$' + fnum(next.p) + '</button></div>'
           : '<span class="shop-max">Максимум ⭐</span>') + '</div></div>';
     }).join("");
     return '<div class="fcard"><div class="shop-head"><div><p class="panel-title">Магазин · девайсы</p><h3 class="blk-h">Апгрейдь сетап</h3></div><div class="shop-bal"><span>Баланс</span><b>$' + fnum(P.balance) + '</b></div></div>' +
-      '<p class="blk-sub">Чем лучше девайсы — тем выше рейтинг и&nbsp;результаты. С&nbsp;нищим сетапом играешь хуже. Деньги капают с&nbsp;турниров. Сейчас сетап даёт <b class="accent">+' + gearBonus() + '</b> к&nbsp;рейтингу.</p>' +
+      '<p class="blk-sub">Чем лучше девайсы — тем дольше живёшь в&nbsp;катках и&nbsp;чаще доходишь до&nbsp;топа. С&nbsp;нищим сетапом сливаешься рано. Деньги капают с&nbsp;турниров. Сейчас живучесть сетапа: <b class="accent">+' + gearBonus() + '</b>.</p>' +
       '<div class="shop-grid">' + cards + '</div></div>' +
-      '<div class="fcard"><p class="panel-title">Переезд</p><div class="shop-card relo"><div class="shop-ic">✈️</div><div class="shop-body"><b>Переезд в другую страну</b>' +
+      '<div class="fcard"><p class="panel-title">Переезд</p><div class="shop-card relo"><div class="shop-ic">' + GEAR_SVG.plane + '</div><div class="shop-body"><b>Переезд в другую страну</b>' +
       '<span class="shop-cur">Сменишь страну и&nbsp;регион. В&nbsp;профиле останется история переездов.</span>' +
       '<div class="shop-next"><span>Сейчас: <b>' + esc(P.countryName) + '</b></span><button class="btn btn-sm' + (moneyOk(RELO_COST) ? ' btn-primary' : ' btn-off') + '" id="reloBtn"' + (moneyOk(RELO_COST) ? '' : ' disabled') + ' type="button">$' + fnum(RELO_COST) + '</button></div></div></div></div>';
   }
@@ -336,7 +344,7 @@
     if (P.balance < next.p) { flash("Не хватает денег."); return; }
     P.balance -= next.p; P.gear[id] = cur + 1; save(); buildBar();
     $("#tabContent").innerHTML = renderShop(); wireShop();
-    flash(g2.n + ": " + next.n + " · +" + next.b + " к рейтингу!");
+    flash(g2.n + ": " + next.n + " · +" + next.b + " к живучести!");
   }
   function doRelo(val) {
     if (P.balance < RELO_COST) { flash("Не хватает денег на переезд."); return; }
@@ -491,37 +499,8 @@
     for (t = 6; t <= 25; t++) if (place <= t) p += 2;
     return p;
   }
-  // пошаговый симулятор: лобби считается по играм, стратегия игрока влияет на его ролл
-  function newSim(ev) {
-    var me = overallOf(), N = ev.lobby, skill = [me];
-    for (var i = 1; i < N; i++) skill.push(Math.max(35, Math.min(99, Math.round(me + rr(-16, 12)))));
-    var totals = []; for (var z = 0; z < N; z++) totals.push(0);
-    return { ev: ev, N: N, skill: skill, totals: totals, myElims: 0, best: N, vr: 0, log: [], g: 0 };
-  }
-  function simGames(sim, count, mod) {
-    var out = [];
-    for (var c = 0; c < count && sim.g < sim.ev.games; c++) {
-      sim.g++;
-      var order = sim.skill.map(function (s, idx) {
-        var noise = idx === 0 ? rr(-20, 20) * mod.varMul + mod.perf : rr(-20, 20);
-        return { idx: idx, r: s + noise };
-      }).sort(function (a, b) { return b.r - a.r; });
-      for (var p = 0; p < sim.N; p++) {
-        var idx = order[p].idx, place = p + 1;
-        var base = Math.max(0, Math.round((order[p].r - sim.skill[idx] + 10) / 8) + (place <= 10 ? 1 : 0));
-        var el = idx === 0 ? Math.max(0, base + mod.killBias) : base;
-        sim.totals[idx] += placePts(place) + el * 4;
-        if (idx === 0) {
-          sim.myElims += el; if (place < sim.best) sim.best = place; if (place === 1) sim.vr++;
-          var row = { g: sim.g, place: place, el: el, pts: placePts(place) + el * 4 };
-          sim.log.push(row); out.push(row);
-        }
-      }
-    }
-    return out;
-  }
-  function myRankNow(sim) { var t = sim.totals[0], rank = 1; for (var j = 1; j < sim.N; j++) if (sim.totals[j] > t) rank++; return rank; }
-  function finishSim(sim) { return { total: sim.totals[0], elims: sim.myElims, best: sim.best, vr: sim.vr, rank: myRankNow(sim), lobby: sim.N, games: sim.ev.games, log: sim.log }; }
+  // девайсы влияют на ВЫЖИВАЕМОСТЬ (не на рейтинг): лучше сетап — дольше живёшь в катках
+  function gearPerf() { return gearBonus() * 3.5; }
 
   // точки высадки на карте (как в Fortnite) — heat задаёт модификатор, завязан на статы
   // СТР=0 СТРОЙ=1 РОТ=2 КЛЧ=3 IQ=4 СТБ=5
@@ -545,29 +524,14 @@
     { id: "sunken", n: "Sunken Shores", heat: "safe", x: 46, y: 80 },
     { id: "cluster", n: "Cluster Coast", heat: "safe", x: 78, y: 81 }
   ];
-  // забег по зонам: 4 этапа (действие → проходят зоны → действие)
-  var PHASES = [
-    { title: "Ранняя игра", sub: "Ты высадился. Как играешь первые зоны?", opts: [
-      { id: "fight", ic: "⚔️", n: "Драться за точку", d: "Забрать лут в бою — киллы, но риск. Любит Стрельбу.", fit: 0, perf: 0, varMul: 1.25, killBias: 2 },
-      { id: "loot", ic: "🎒", n: "Тихо лутаться", d: "Собрать всё без боёв, баланс. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 1, killBias: 0 },
-      { id: "erot", ic: "🧭", n: "Сразу ротация", d: "Уйти в зону пораньше, безопасно. Любит Ротации.", fit: 2, perf: 0, varMul: 0.82, killBias: -1 }
-    ] },
-    { title: "Мид-гейм", sub: "Зона сжимается. Что делаешь в середине?", opts: [
-      { id: "aggro", ic: "🔫", n: "Искать бои", d: "Добивать команды ради киллов. Любит Клатч.", fit: 3, perf: 0, varMul: 1.2, killBias: 2 },
-      { id: "mats", ic: "🧱", n: "Копить материалы", d: "Фармить и строить экономику. Любит Стройку.", fit: 1, perf: 1, varMul: 1, killBias: 0 },
-      { id: "mrot", ic: "🛡️", n: "Ранние ротации", d: "Держаться края зоны, плейсмент. Любит Ротации.", fit: 2, perf: 0, varMul: 0.82, killBias: -1 }
-    ] },
-    { title: "Поздняя игра", sub: "Остались сильнейшие. Как берёшь позицию?", opts: [
-      { id: "high", ic: "⛰️", n: "Забрать хайграунд", d: "Строить вверх, держать высоту. Любит Стройку.", fit: 1, perf: 1, varMul: 1, killBias: 0 },
-      { id: "take", ic: "💥", n: "Отжать позицию", d: "Выбить соперников с точки. Любит Клатч.", fit: 3, perf: 0, varMul: 1.22, killBias: 2 },
-      { id: "passive", ic: "🧊", n: "На плейсмент", d: "Не лезть, тянуть место. Любит Стабильность.", fit: 5, perf: 0, varMul: 0.8, killBias: -1 }
-    ] },
-    { title: "Эндгейм", sub: "Финальный круг. Решающий момент.", opts: [
-      { id: "push", ic: "🚀", n: "Пушить на 1 место", d: "Идти на победу, максимум риска. Любит Клатч.", fit: 3, perf: 2, varMul: 1.3, killBias: 2 },
-      { id: "place", ic: "🎯", n: "Чистый плейсмент", d: "Отсидеться ради очков за место. Любит Стабильность.", fit: 5, perf: 1, varMul: 0.75, killBias: -1 },
-      { id: "read", ic: "🧠", n: "Читать зону", d: "Угадать круг и занять центр. Любит Гейм-IQ.", fit: 4, perf: 1, varMul: 0.9, killBias: 0 }
-    ] }
+  // действия по ходу зоны (появляются ПОВЕРХ карты)
+  var ACTIONS = [
+    { id: "rot", ic: "🧭", n: "Ротация", d: "Уйти в зону заранее — безопасно", fit: 2, perf: 5, varMul: 0.8, killBias: 0 },
+    { id: "fight", ic: "⚔️", n: "Идти файтиться", d: "Искать бои — киллы, но риск", fit: 3, perf: -1, varMul: 1.28, killBias: 2 },
+    { id: "high", ic: "⛰️", n: "Хайграунд", d: "Строить высоту, держать позицию", fit: 1, perf: 4, varMul: 0.95, killBias: 0 }
   ];
+  // цвета игроков на карте (ты — золотой, остальные разные)
+  var BOT_COLORS = ["#ff6b6b", "#4dd4ff", "#9b6bff", "#3fe07a", "#ff9b3d", "#ff6bd6", "#6bffd0", "#c0e36b"];
   function heatOf(id) { return HEAT[(POIS.filter(function (p) { return p.id === id; })[0] || POIS[0]).heat]; }
   function poiOf(id) { return POIS.filter(function (p) { return p.id === id; })[0] || POIS[0]; }
   // POI-кнопки поверх реальной карты (фон задаёт CSS .br-map)
@@ -589,154 +553,173 @@
   }
   var tourModal = $("#tourModal"), pendingDay = false;
   window.addEventListener("resize", function () { if (!tourModal.hidden && tState && tState.zones) layoutZone(); });
-  Array.prototype.forEach.call(document.querySelectorAll("[data-tclose]"), function (el) { el.addEventListener("click", function () { tourModal.hidden = true; if (pendingDay) { pendingDay = false; advanceDay(); } }); });
-  var tState = null;
+  var tState = null, tTimer = null;
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function dist(ax, ay, bx, by) { var dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
-  function optCard(o) { return '<button class="t-opt" data-opt="' + o.id + '" type="button"><span class="t-opt-ic">' + o.ic + '</span><b>' + o.n + '</b><span>' + o.d + '</span></button>'; }
+  function after(ms, fn) { tTimer = setTimeout(fn, ms); }
 
-  // Этап 1 — карта высадки (реальная карта Fortnite, клик по локации)
-  function tourCard() { return tourModal.querySelector(".tour-card"); }
-  function openTournament(ev) {
-    tState = { ev: ev, poi: null };
-    $("#tourTitle").textContent = ev.name;
-    var c = tourCard(); if (c) c.classList.add("tour-big");
-    pendingDay = false;
-    tourModal.hidden = false;
-    renderMap();
-  }
-  function renderMap() {
-    var ev = tState.ev, sel = tState.poi, p = sel ? poiOf(sel) : null, h = sel ? heatOf(sel) : null;
-    $("#tourBody").innerHTML =
-      '<div class="br-layout"><div class="br-side">' +
-        '<p class="t-ev-sub">' + TYPE_LBL[ev.type] + ' · ' + ev.lobby + ' игроков · фонд от $' + fnum(ev.prizeTop) + '</p>' +
-        '<h4 class="t-q">Куда высаживаешься?</h4>' +
-        '<div class="map-legend"><span><i style="background:#ff6b4a"></i>Жарко</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо</span></div>' +
-        '<div class="map-pick">' + (p ? 'Высадка: <b style="color:' + h.c + '">' + esc(p.n) + '</b>' + (h.fit >= 0 ? ' · тащит ' + SHORT[h.fit] : '') : 'Нажми на локацию на карте') + '</div>' +
-        '<div class="br-side-foot"><button class="btn btn-primary btn-block" id="tDrop" type="button"' + (sel ? "" : " disabled") + '>' + (sel ? "Высадиться →" : "Выбери локацию") + '</button></div>' +
-      '</div>' +
-      '<div class="br-stage"><div class="br-map br-pick" id="brMap"><div class="br-pois">' + poiMarkers(sel) + '</div></div></div></div>';
-  }
-  // делегирование кликов (навешивается один раз)
+  function openTournament(ev) { tState = { ev: ev, poi: null, G: ev.games, gi: 0, scores: [], total: 0 }; pendingDay = false; tourModal.hidden = false; renderSetup(); }
+  function closeTour() { if (tTimer) { clearTimeout(tTimer); tTimer = null; } tourModal.hidden = true; if (pendingDay) { pendingDay = false; advanceDay(); } }
+  function pageTop(title, sub) { return '<div class="tp-top"><div class="tp-title">' + title + ' <span>' + sub + '</span></div><button class="tp-x" data-tclose type="button">✕</button></div>'; }
+
+  // клики по странице турнира (навешивается один раз)
   $("#tourBody").addEventListener("click", function (e) {
     if (!tState) return;
-    var poi = e.target.closest("[data-poi]");
-    if (poi) { tState.poi = poi.getAttribute("data-poi"); renderMap(); return; }
-    if (e.target.id === "tDrop" && !e.target.disabled) { startRun(); return; }
-    var opt = e.target.closest(".t-opt");
-    if (opt && opt.parentNode.getAttribute("data-grp") === "phase") { applyPhase(opt.getAttribute("data-opt")); return; }
-    if (e.target.id === "tourDone") { tourModal.hidden = true; pendingDay = false; advanceDay(); }
+    if (e.target.closest("[data-tclose]")) { closeTour(); return; }
+    var poi = e.target.closest("[data-poi]"); if (poi) { tState.poi = poi.getAttribute("data-poi"); renderSetup(); return; }
+    if (e.target.id === "tDrop" && !e.target.disabled) { startTournament(); return; }
+    var act = e.target.closest("[data-act]"); if (act) { onAction(act.getAttribute("data-act")); return; }
+    var fg = e.target.closest("[data-fight]"); if (fg) { onFight(fg.getAttribute("data-fight")); return; }
+    if (e.target.id === "nextGameBtn") { startGame(); return; }
+    if (e.target.id === "tourDone") { closeTour(); return; }
   });
 
-  // ===== Battle Royale на карте: зоны + игроки-стрелочки =====
-  function startRun() {
-    var ev = tState.ev, drop = poiOf(tState.poi), N = ev.lobby;
-    var zones = [{ x: 50, y: 48, r: 45 }];
-    for (var z = 1; z < 8; z++) {
-      var prev = zones[z - 1], nr = prev.r * 0.66, a = rr(0, Math.PI * 2), d = (prev.r - nr) * Math.random();
-      zones.push({ x: clamp(prev.x + Math.cos(a) * d, nr, 100 - nr), y: clamp(prev.y + Math.sin(a) * d, nr, 100 - nr), r: nr });
-    }
-    var players = [{ x: drop.x, y: drop.y, alive: true, me: true, skill: overallOf(), kills: 0 }];
-    for (var i = 1; i < N; i++) {
-      var sp = POIS[Math.floor(Math.random() * POIS.length)];
-      players.push({ x: clamp(sp.x + rr(-7, 7), 2, 98), y: clamp(sp.y + rr(-7, 7), 2, 98), alive: true, me: false, skill: clamp(Math.round(overallOf() + rr(-16, 12)), 35, 99), kills: 0 });
-    }
-    tState.zones = zones; tState.players = players; tState.zoneIdx = 0; tState.alive = N; tState.kills = 0;
-    tState.me = players[0]; tState.phaseIdx = 0;
+  // Этап 1 — карта высадки на весь экран
+  function renderSetup() {
+    var ev = tState.ev, sel = tState.poi, p = sel ? poiOf(sel) : null, h = sel ? heatOf(sel) : null;
+    $("#tourBody").innerHTML = pageTop(esc(ev.name), TYPE_LBL[ev.type] + " · " + ev.lobby + " игроков · " + ev.games + " игр · фонд $" + fnum(ev.prizeTop)) +
+      '<div class="tp-main"><div class="br-stage"><div class="br-map br-pick" id="brMap"><div class="br-pois">' + poiMarkers(sel) + '</div>' +
+      '<div class="br-over br-legend"><span><i style="background:#ff6b4a"></i>Жарко</span><span><i style="background:#ffd84d"></i>Средне</span><span><i style="background:#3fe07a"></i>Тихо</span></div>' +
+      '<div class="br-over br-pickbar">' + (p ? '<span>Высадка: <b style="color:' + h.c + '">' + esc(p.n) + '</b></span>' : '<span>Нажми на локацию — куда высаживаешься</span>') +
+      '<button class="btn btn-primary" id="tDrop"' + (sel ? "" : " disabled") + ' type="button">' + (sel ? "Высадиться →" : "Выбери локацию") + '</button></div>' +
+      '</div></div></div>';
+  }
+
+  function startTournament() {
+    tState.drop = poiOf(tState.poi); tState.gi = 0; tState.scores = []; tState.total = 0;
     tState.baseMod = addMod({ perf: 0, varMul: 1, killBias: 0 }, heatOf(tState.poi));
-    tState.aliveCurve = [N, Math.round(N * 0.62), Math.round(N * 0.4), Math.round(N * 0.26), Math.round(N * 0.16), Math.round(N * 0.09), Math.round(N * 0.04), 1];
-    $("#tourBody").innerHTML =
-      '<div class="br-layout"><div class="br-side">' +
-        '<div class="br-side-head" id="brPhase">Высадка · ' + esc(drop.n) + '</div>' +
-        '<div class="br-stats"><div><b id="brAlive">' + N + '</b><span>живых</span></div><div><b id="brZone">1</b><span>зона/8</span></div><div><b id="brKills">0</b><span>киллы</span></div></div>' +
-        '<div id="tMid"></div>' +
-      '</div>' +
-      '<div class="br-stage"><div class="br-map" id="brMap"><div class="br-zone" id="brZoneC"></div><div class="br-players" id="brPlayers">' +
-      players.map(function (p) { return '<i class="br-arrow' + (p.me ? " me" : "") + '" style="left:' + p.x + '%;top:' + p.y + '%"></i>'; }).join("") + '</div></div></div></div>';
-    layoutZone(); requestAnimationFrame(layoutZone); setTimeout(layoutZone, 40);
-    showPhase(0);
+    $("#tourBody").innerHTML = pageTop(esc(tState.ev.name), '<span id="tpRound">Игра 1 / ' + tState.G + '</span>') +
+      '<div class="tp-main"><div class="br-stage"><div class="br-map" id="brMap">' +
+      '<div class="br-zone" id="brZoneC"></div><div class="br-players" id="brPlayers"></div>' +
+      '<div class="br-over br-hud"><span>Живых <b id="brAlive">' + tState.ev.lobby + '</b></span><span>Зона <b id="brZone">1</b></span><span>Киллы <b id="brKills">0</b></span></div>' +
+      '<div class="br-over br-score" id="brScore"></div><div class="br-over br-decide" id="brDecide"></div>' +
+      '</div></div></div>';
+    startGame();
+  }
+
+  function startGame() {
+    tState.gi++;
+    var ev = tState.ev, N = ev.lobby, drop = tState.drop;
+    var zones = [{ x: 50, y: 48, r: 45 }];
+    for (var z = 1; z < 6; z++) { var prev = zones[z - 1], nr = prev.r * 0.62, a = rr(0, Math.PI * 2), d = (prev.r - nr) * Math.random(); zones.push({ x: clamp(prev.x + Math.cos(a) * d, nr, 100 - nr), y: clamp(prev.y + Math.sin(a) * d, nr, 100 - nr), r: nr }); }
+    var players = [{ x: drop.x, y: drop.y, alive: true, me: true, skill: overallOf(), kills: 0, col: "#ffe24d" }];
+    for (var i = 1; i < N; i++) { var sp = POIS[Math.floor(Math.random() * POIS.length)]; players.push({ x: clamp(sp.x + rr(-7, 7), 2, 98), y: clamp(sp.y + rr(-7, 7), 2, 98), alive: true, me: false, skill: clamp(Math.round(overallOf() + rr(-16, 12)), 35, 99), kills: 0, col: BOT_COLORS[i % BOT_COLORS.length] }); }
+    tState.zones = zones; tState.players = players; tState.zoneIdx = 0; tState.alive = N; tState.kills = 0; tState.me = players[0];
+    tState.curMod = null; tState.decided = false; tState.firedFight = false;
+    tState.aliveCurve = [N, Math.round(N * 0.6), Math.round(N * 0.34), Math.round(N * 0.16), Math.round(N * 0.06), 1];
+    var rd = $("#tpRound"); if (rd) rd.textContent = "Игра " + tState.gi + " / " + tState.G;
+    buildMarkers(); renderScore(); updateHud(); $("#brDecide").innerHTML = "";
+    after(500, function () { stepZone(); afterStep(); });
+  }
+
+  function buildMarkers() {
+    var pl = $("#brPlayers"); if (!pl) return;
+    pl.innerHTML = tState.players.map(function (p) { return '<i class="br-arrow' + (p.me ? " me" : "") + '" style="left:' + p.x + '%;top:' + p.y + '%;--col:' + p.col + '"></i>'; }).join("");
+    requestAnimationFrame(function () { layoutZone(); updateMarkers(); });
+  }
+  function updateMarkers() {
+    var pl = $("#brPlayers"); if (!pl) return; var nodes = pl.children, z = tState.zones[tState.zoneIdx];
+    tState.players.forEach(function (p, i) {
+      var el = nodes[i]; if (!el) return;
+      el.style.left = p.x + "%"; el.style.top = p.y + "%";
+      var ang = Math.atan2(z.y - p.y, z.x - p.x) * 180 / Math.PI + 90;
+      el.style.transform = "translate(-50%,-50%) rotate(" + ang.toFixed(0) + "deg)";
+      if (!p.alive) el.classList.add(p.me ? "knocked" : "dead");
+    });
   }
   function layoutZone() {
     var map = $("#brMap"), zc = $("#brZoneC"); if (!map || !zc) return;
     var z = tState.zones[tState.zoneIdx], w = map.clientWidth || map.getBoundingClientRect().width;
-    var d = (z.r * 2 / 100) * w;
-    zc.style.width = d + "px"; zc.style.height = d + "px"; zc.style.left = z.x + "%"; zc.style.top = z.y + "%";
+    var d = (z.r * 2 / 100) * w; zc.style.width = d + "px"; zc.style.height = d + "px"; zc.style.left = z.x + "%"; zc.style.top = z.y + "%";
   }
-  function showPhase(i) {
-    var ph = PHASES[i], lbl = $("#brPhase"); if (lbl) lbl.textContent = ph.title;
-    $("#tMid").innerHTML = '<div class="t-decision"><p class="t-dec-q"><b>' + ph.title + '.</b> ' + ph.sub + '</p>' +
-      '<div class="t-opts" data-grp="phase">' + ph.opts.map(optCard).join("") + '</div></div>';
+  function updateHud() { var a = $("#brAlive"); if (a) a.textContent = tState.alive; var zz = $("#brZone"); if (zz) zz.textContent = tState.zoneIdx + 1; var kk = $("#brKills"); if (kk) kk.textContent = tState.kills; }
+
+  function afterStep() {
+    if (!tState.me.alive || tState.zoneIdx >= tState.zones.length - 1) { after(750, endGame); return; }
+    if (tState.zoneIdx === 1 && !tState.decided) { showAction(); return; }
+    if (tState.zoneIdx === 3 && !tState.firedFight && Math.random() < 0.55) { tState.firedFight = true; showFight(); return; }
+    after(1150, function () { stepZone(); afterStep(); });
   }
-  function applyPhase(optId) {
-    var ph = PHASES[tState.phaseIdx], opt = byId2(ph.opts, optId);
-    tState.curMod = addMod({ perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias }, opt);
-    $("#tMid").innerHTML = '<div class="t-zoneflow">Шторм сужается…</div>';
-    runZones(2, function () {
-      tState.phaseIdx++;
-      if (!tState.me.alive || tState.zoneIdx >= tState.zones.length - 1) { finishRun(); return; }
-      if (tState.phaseIdx < PHASES.length) showPhase(tState.phaseIdx);
-      else finishRun();
-    });
+  function actCard(o, attr) { return '<button class="br-act" data-' + attr + '="' + o.id + '" type="button"><span class="ba-ic">' + o.ic + '</span><b>' + o.n + '</b><span>' + o.d + '</span></button>'; }
+  function showAction() {
+    $("#brDecide").innerHTML = '<div class="br-ask"><p>Зона сужается — что делаешь?</p><div class="br-acts">' + ACTIONS.map(function (a) { return actCard(a, "act"); }).join("") + '</div></div>';
   }
-  function runZones(n, done) {
-    var k = 0;
-    (function next() {
-      if (k >= n || !tState.me.alive || tState.zoneIdx >= tState.zones.length - 1) { done(); return; }
-      k++; stepZone(); setTimeout(next, 1350);
-    })();
+  function onAction(id) {
+    tState.decided = true;
+    tState.curMod = addMod({ perf: tState.baseMod.perf, varMul: tState.baseMod.varMul, killBias: tState.baseMod.killBias }, byId2(ACTIONS, id));
+    $("#brDecide").innerHTML = ""; after(350, function () { stepZone(); afterStep(); });
   }
+  function showFight() {
+    $("#brDecide").innerHTML = '<div class="br-ask fight"><p>⚔️ Тебе попался игрок! Что делаешь?</p><div class="br-acts">' +
+      actCard({ id: "fight", ic: "🔫", n: "Файтиться", d: "Рискнуть ради килла" }, "fight") +
+      actCard({ id: "flee", ic: "🏃", n: "Уйти", d: "Безопасно отступить" }, "fight") + '</div></div>';
+  }
+  function onFight(choice) {
+    $("#brDecide").innerHTML = "";
+    if (choice === "flee") { after(350, function () { stepZone(); afterStep(); }); return; }
+    var winChance = clamp((P.stats[0] + P.stats[3]) / 2 + gearPerf() / 3 - 46, 12, 90);
+    if (Math.random() * 100 < winChance) { tState.kills += 1 + Math.floor(Math.random() * 2); updateHud(); flash("Выиграл файт! +килл"); after(350, function () { stepZone(); afterStep(); }); }
+    else { tState.me.alive = false; tState.me.place = tState.alive; updateMarkers(); flash("Тебя выбили в файте."); after(750, endGame); }
+  }
+
   function stepZone() {
     tState.zoneIdx++;
     var zi = tState.zoneIdx, z = tState.zones[zi], mod = tState.curMod || tState.baseMod;
-    var alivePlayers = tState.players.filter(function (p) { return p.alive; });
-    alivePlayers.forEach(function (p) {
-      if (dist(p.x, p.y, z.x, z.y) > z.r * 0.75) {
-        var pull = p.me ? 0.8 : 0.58 + Math.random() * 0.32;
-        p.x = clamp(p.x + (z.x - p.x) * pull + rr(-3, 3), 1, 99);
-        p.y = clamp(p.y + (z.y - p.y) * pull + rr(-3, 3), 1, 99);
-      } else { p.x = clamp(p.x + rr(-4, 4), 1, 99); p.y = clamp(p.y + rr(-4, 4), 1, 99); }
+    var alive = tState.players.filter(function (p) { return p.alive; });
+    alive.forEach(function (p) {
+      if (dist(p.x, p.y, z.x, z.y) > z.r * 0.72) { var pull = p.me ? 0.82 : 0.58 + Math.random() * 0.32; p.x = clamp(p.x + (z.x - p.x) * pull + rr(-3, 3), 1, 99); p.y = clamp(p.y + (z.y - p.y) * pull + rr(-3, 3), 1, 99); }
+      else { p.x = clamp(p.x + rr(-4, 4), 1, 99); p.y = clamp(p.y + rr(-4, 4), 1, 99); }
     });
     var target = tState.aliveCurve[zi] || 1, need = Math.max(0, tState.alive - target);
     var me = tState.me, inZone = dist(me.x, me.y, z.x, z.y) <= z.r * 1.1;
-    // выживание: порог растёт к эндгейму — хороший игрок доживает дальше
-    var surviveRoll = (me.skill - 45) + mod.perf * 1.5 + (inZone ? 0 : -22) + rr(-13, 13) * mod.varMul;
-    var TH = [0, 2, 6, 12, 20, 30, 44, 62];
-    var meDies = surviveRoll < (TH[zi] != null ? TH[zi] : 70);
-    var bots = alivePlayers.filter(function (p) { return !p.me; });
-    bots.sort(function (a, b) {
-      return ((dist(a.x, a.y, z.x, z.y) <= z.r ? a.skill : a.skill - 40) + rr(-10, 10)) - ((dist(b.x, b.y, z.x, z.y) <= z.r ? b.skill : b.skill - 40) + rr(-10, 10));
-    });
+    var surviveRoll = (me.skill - 52) + gearPerf() + mod.perf + (inZone ? 0 : -20) + rr(-13, 13) * mod.varMul;
+    var TH = [0, 3, 9, 17, 27, 40];
+    var meDies = surviveRoll < (TH[zi] != null ? TH[zi] : 50);
+    var bots = alive.filter(function (p) { return !p.me; });
+    bots.sort(function (a, b) { return ((dist(a.x, a.y, z.x, z.y) <= z.r ? a.skill : a.skill - 40) + rr(-10, 10)) - ((dist(b.x, b.y, z.x, z.y) <= z.r ? b.skill : b.skill - 40) + rr(-10, 10)); });
     var botDeaths = meDies ? Math.max(0, need - 1) : need;
     for (var i = 0; i < botDeaths && i < bots.length; i++) bots[i].alive = false;
     if (meDies) { me.alive = false; me.place = tState.players.filter(function (p) { return p.alive; }).length + 1; }
     else { var kg = Math.max(0, Math.round((mod.killBias + fitBonus(0)) * 0.3 * Math.random())); me.kills += kg; tState.kills += kg; }
     tState.alive = tState.players.filter(function (p) { return p.alive; }).length;
-    renderStep();
+    updateMarkers(); layoutZone(); updateHud();
   }
-  function renderStep() {
-    layoutZone();
-    var pl = $("#brPlayers"); if (pl) {
-      var nodes = pl.children;
-      tState.players.forEach(function (p, i) { var el = nodes[i]; if (!el) return; el.style.left = p.x + "%"; el.style.top = p.y + "%"; if (!p.alive) el.classList.add(p.me ? "knocked" : "dead"); });
-    }
-    var a = $("#brAlive"); if (a) a.textContent = tState.alive;
-    var zz = $("#brZone"); if (zz) zz.textContent = tState.zoneIdx + 1;
-    var kk = $("#brKills"); if (kk) kk.textContent = tState.kills;
+
+  function renderScore() {
+    var el = $("#brScore"); if (!el) return;
+    var rows = tState.scores.map(function (s, i) { return '<div class="bs-row"><span>Игра ' + (i + 1) + '</span><span class="bs-pl' + (s.place === 1 ? " vr" : s.place <= 10 ? " top" : "") + '">#' + s.place + '</span><span class="bs-pt">+' + s.pts + '</span></div>'; }).join("");
+    el.innerHTML = '<div class="bs-head">Табло · <b>' + tState.total + '</b> очк</div>' + rows;
   }
-  function finishRun() {
+
+  function endGame() {
     var me = tState.me, placement;
     if (me.alive) {
       var last = tState.players.filter(function (p) { return p.alive; });
-      if (last.length > 1) { last.sort(function (a, b) { return (b.skill + (b.me ? tState.curMod.perf * 2 : 0) + rr(0, 16)) - (a.skill + (a.me ? tState.curMod.perf * 2 : 0) + rr(0, 16)); }); placement = last.indexOf(me) + 1; }
+      if (last.length > 1) { last.sort(function (a, b) { return (b.skill + (b.me ? (tState.curMod ? tState.curMod.perf : 0) : 0) + rr(0, 14)) - (a.skill + (a.me ? (tState.curMod ? tState.curMod.perf : 0) : 0) + rr(0, 14)); }); placement = last.indexOf(me) + 1; }
       else placement = 1;
       if (placement === 1 && me.kills === 0) me.kills = 1;
     } else placement = me.place || (tState.alive + 1);
-    var ev = tState.ev, total = placePts(placement) + tState.kills * 4;
-    showResult({ rank: placement, lobby: ev.lobby, total: total, elims: tState.kills, best: placement, vr: placement === 1 ? 1 : 0, log: [] });
+    var pts = placePts(placement) + me.kills * 4;
+    tState.scores.push({ place: placement, kills: me.kills, pts: pts }); tState.total += pts; renderScore();
+    if (tState.gi < tState.G) {
+      $("#brDecide").innerHTML = '<div class="br-gameover"><b>' + (placement === 1 ? "👑 1 место!" : placement + " место") + '</b><span>' + me.kills + ' киллов · +' + pts + ' очк · всего ' + tState.total + '</span><button class="btn btn-primary" id="nextGameBtn" type="button">Игра ' + (tState.gi + 1) + " / " + tState.G + ' →</button></div>';
+    } else { finishTournament(); }
   }
-  // Этап 4 — итог + награды
+
+  function finishTournament() {
+    var ev = tState.ev, myTotal = tState.total, N = ev.lobby, me = overallOf(), rank = 1;
+    for (var i = 0; i < N - 1; i++) {
+      var bs = clamp(Math.round(me + rr(-14, 12)), 35, 99), bt = 0;
+      for (var g = 0; g < tState.G; g++) { var place = clamp(Math.round(52 - (bs - me) + rr(-30, 30)), 1, 100); bt += placePts(place) + Math.max(0, Math.round((bs - 52) / 9)) * 4; }
+      if (bt > myTotal) rank++;
+    }
+    var best = tState.scores.reduce(function (m, s) { return Math.min(m, s.place); }, 999);
+    var vr = tState.scores.filter(function (s) { return s.place === 1; }).length;
+    var kills = tState.scores.reduce(function (a, s) { return a + s.kills; }, 0);
+    showResult({ rank: rank, lobby: N, total: myTotal, elims: kills, best: best, vr: vr, log: tState.scores.map(function (s, i) { return { g: i + 1, place: s.place, el: s.kills, pts: s.pts }; }) });
+  }
+  // итог турнира + награды
   function showResult(res) {
-    var c = tourCard(); if (c) c.classList.remove("tour-big");
     var ev = tState.ev;
     var prize = prizeOf(res.rank, ev.lobby, ev.prizeTop), pr = prGain(res.rank, ev.lobby, ev.prW);
     var ups = [], xpAll = Math.round(8 + (1 - res.rank / ev.lobby) * 34);
@@ -751,13 +734,15 @@
     var rankCls = res.rank === 1 ? "t-gold" : res.rank <= 3 ? "t-silver" : res.rank <= 10 ? "t-blue" : "";
     var rows = res.log.map(function (l) { return '<tr><td>Игра ' + l.g + '</td><td>' + (l.place === 1 ? "👑 1" : l.place) + '</td><td>' + l.el + '</td><td>' + l.pts + '</td></tr>'; }).join("");
     var trophyTxt = trophy === "win" ? "🏆 Победа на турнире!" : trophy === "podium" ? "🥈 Подиум (топ-3)" : trophy === "top10" ? "🎖 Топ-10" : "";
-    $("#tourBody").innerHTML =
+    $("#tourBody").innerHTML = pageTop(esc(ev.name), "итог турнира · " + tState.G + " игр") +
+      '<div class="tp-main"><div class="tp-result">' +
       '<div class="t-rank ' + rankCls + '"><b>' + res.rank + '</b><span>место из ' + res.lobby + '</span></div>' +
       '<div class="t-kpis"><div><b>' + res.total + '</b><span>очки</span></div><div><b>' + res.elims + '</b><span>киллы</span></div><div><b>' + res.best + '</b><span>лучшее</span></div><div><b>' + res.vr + '</b><span>👑 VR</span></div></div>' +
       (res.log.length ? '<table class="t-log"><thead><tr><th>Игра</th><th>Место</th><th>Киллы</th><th>Очки</th></tr></thead><tbody>' + rows + '</tbody></table>' : '') +
       (trophyTxt ? '<div class="t-tr">' + trophyTxt + '</div>' : "") +
       '<div class="t-rw-row">Приз: <b>$' + fnum(prize) + '</b> · <b>+' + pr + ' PR</b> · Опыт: <b>+' + xpAll + '</b>' + (ups.length ? ' · <span class="accent">' + ups.join(" ") + '</span>' : "") + '</div>' +
-      '<button class="btn btn-primary btn-block" id="tourDone" type="button">В следующий день →</button>';
+      '<button class="btn btn-primary btn-block" id="tourDone" type="button">В следующий день →</button>' +
+      '</div></div>';
     pendingDay = true;
   }
 

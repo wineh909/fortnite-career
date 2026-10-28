@@ -548,29 +548,44 @@ p { margin: 0; }
 @keyframes tgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .t-decision { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line2); }
 .t-dec-q { font-size: 14px; margin-bottom: 10px; } .t-dec-q b { color: var(--accent); }
-/* battle-royale map (real Fortnite map background) */
-.tour-card { max-height: calc(100vh - 40px); overflow-y: auto; }
-.br-map { position: relative; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; border: 1px solid var(--line2); background: #0a2036 url("assets/fnmap.webp") center / cover; }
-/* большой турнир на весь экран: панель слева + карта справа */
-.tour-card.tour-big { width: 96vw; max-width: 1220px; height: 90vh; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; }
-.tour-card.tour-big #tourBody { flex: 1; min-height: 0; }
-.br-layout { display: flex; gap: 16px; height: 100%; min-height: 0; }
-.br-side { width: 330px; flex: none; display: flex; flex-direction: column; overflow-y: auto; }
-.br-side-head { font-family: "Oswald"; text-transform: uppercase; letter-spacing: .04em; font-size: 15px; color: var(--accent); margin-bottom: 12px; }
-.br-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-.br-stats div { background: rgba(255, 255, 255, .05); border: 1px solid var(--line2); border-radius: 10px; padding: 10px 4px; text-align: center; }
-.br-stats b { display: block; font-family: "Oswald"; font-weight: 700; font-size: 22px; color: var(--ink); }
-.br-stats span { font-size: 10px; text-transform: uppercase; letter-spacing: .03em; color: var(--faint); }
-.br-side-foot { margin-top: auto; padding-top: 12px; }
-.br-stage { flex: 1; min-width: 0; display: grid; place-items: center; background: rgba(0, 0, 0, .28); border-radius: 12px; padding: 8px; }
-.br-stage .br-map { margin: 0; width: min(100%, 78vh); height: auto; }
-@media (max-width: 760px) {
-  .tour-card.tour-big { width: 96vw; height: 92vh; }
-  .br-layout { flex-direction: column; gap: 10px; }
-  .br-stage { order: 1; flex: none; height: 52vh; }
-  .br-side { width: auto; order: 2; overflow: visible; }
-  .br-side-foot { margin-top: 12px; }
-}
+/* ===== турнир = страница на весь экран ===== */
+.tour-page { position: fixed; inset: 0; z-index: 85; background: radial-gradient(1200px 820px at 60% -5%, #16294d, #070d1c 72%); display: flex; flex-direction: column; }
+.tour-page[hidden] { display: none; }
+.tour-page > #tourBody { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.tp-top { display: flex; align-items: center; justify-content: space-between; padding: 14px 22px; gap: 12px; flex: none; }
+.tp-title { font-family: "Oswald"; font-weight: 700; font-style: italic; text-transform: uppercase; font-size: 21px; color: var(--ink); }
+.tp-title span { font-style: normal; font-weight: 500; font-size: 13px; color: var(--muted); margin-left: 8px; text-transform: none; }
+.tp-x { background: rgba(255, 255, 255, .08); border: none; color: var(--ink); width: 38px; height: 38px; border-radius: 10px; font-size: 18px; cursor: pointer; flex: none; } .tp-x:hover { background: rgba(255, 255, 255, .16); }
+.tp-main { flex: 1; min-height: 0; display: grid; place-items: center; padding: 0 16px 16px; }
+.br-map { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; border: 1px solid var(--line2); background: #0a2036 url("assets/fnmap.webp") center / cover; box-shadow: 0 10px 40px rgba(0, 0, 0, .5); }
+.tp-main .br-map { margin: 0; width: max(260px, min(96vw, calc(100vh - 96px))); height: auto; }
+.tp-result { width: min(520px, 94%); background: linear-gradient(168deg, var(--panel2), var(--panel)); border: 1px solid var(--line2); border-radius: 16px; padding: 22px; max-height: calc(100vh - 110px); overflow-y: auto; }
+.tp-result .btn, .br-gameover .btn { width: 100%; } .br-pickbar .btn { width: auto; }
+/* overlays поверх карты */
+.br-over { position: absolute; z-index: 5; }
+.br-legend { left: 12px; top: 12px; display: flex; gap: 10px; background: rgba(5, 12, 34, .72); padding: 6px 11px; border-radius: 9px; font-size: 11px; color: var(--ink2); }
+.br-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.br-pickbar { left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; background: rgba(5, 12, 34, .85); padding: 10px 16px; border-radius: 12px; border: 1px solid var(--line2); max-width: 92%; }
+.br-pickbar b { font-family: "Oswald"; }
+.br-hud { left: 12px; top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.br-hud span { background: rgba(5, 12, 34, .78); padding: 6px 11px; border-radius: 9px; font-family: "Oswald"; text-transform: uppercase; font-size: 11px; color: var(--muted); } .br-hud b { color: var(--accent); font-size: 14px; }
+.br-score { right: 12px; top: 12px; width: 185px; max-height: 72%; overflow-y: auto; background: rgba(5, 12, 34, .82); border: 1px solid var(--line2); border-radius: 12px; padding: 10px; }
+.bs-head { font-family: "Oswald"; text-transform: uppercase; font-size: 12px; color: var(--faint); margin-bottom: 8px; } .bs-head b { color: var(--accent); font-size: 15px; }
+.bs-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; font-size: 12px; padding: 3px 0; align-items: center; }
+.bs-pl { font-family: "Oswald"; color: var(--ink2); text-align: right; } .bs-pl.top { color: var(--cyan); } .bs-pl.vr { color: var(--accent); }
+.bs-pt { font-family: "Oswald"; font-weight: 700; color: var(--green); }
+.br-decide { left: 50%; bottom: 16px; transform: translateX(-50%); width: min(640px, 94%); }
+.br-ask { background: rgba(5, 12, 34, .92); border: 1px solid var(--line2); border-radius: 14px; padding: 12px 14px; }
+.br-ask > p { text-align: center; font-family: "Oswald"; text-transform: uppercase; font-size: 13px; color: var(--ink); margin-bottom: 10px; }
+.br-ask.fight { border-color: rgba(255, 90, 90, .55); }
+.br-acts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.br-act { text-align: left; background: rgba(255, 255, 255, .06); border: 1.5px solid var(--line2); border-radius: 11px; padding: 10px; cursor: pointer; transition: .14s; display: flex; flex-direction: column; gap: 2px; }
+.br-act:hover { border-color: var(--accent); background: rgba(255, 210, 26, .1); transform: translateY(-2px); }
+.ba-ic { font-size: 20px; line-height: 1; } .br-act b { font-family: "Oswald"; text-transform: uppercase; font-size: 13px; } .br-act span:last-child { font-size: 11px; color: var(--muted); }
+.br-gameover { background: rgba(5, 12, 34, .94); border: 1px solid var(--accent); border-radius: 14px; padding: 14px; text-align: center; }
+.br-gameover b { font-family: "Oswald"; font-size: 20px; display: block; color: var(--accent); }
+.br-gameover span { font-size: 13px; color: var(--muted); display: block; margin: 4px 0 10px; }
+@media (max-width: 620px) { .br-score { width: 134px; } .br-hud span { font-size: 10px; padding: 5px 8px; } .tp-title { font-size: 17px; } }
 .br-map.br-pick { cursor: crosshair; }
 .br-pois { position: absolute; inset: 0; }
 .br-poi { position: absolute; transform: translate(-50%, -50%); background: none; border: none; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 3; }
@@ -581,13 +596,11 @@ p { margin: 0; }
 .br-poi.on .br-poi-dot { border-color: var(--accent); transform: scale(1.45); box-shadow: 0 0 10px var(--accent); }
 .br-poi.on .br-poi-lbl { color: var(--accent); }
 .br-zone { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #eafbff; box-shadow: 0 0 0 9999px rgba(120, 40, 170, .5), inset 0 0 16px rgba(150, 100, 210, .35); transition: width 1.2s ease, height 1.2s ease, left 1.2s ease, top 1.2s ease; pointer-events: none; }
-.br-players { position: absolute; inset: 0; pointer-events: none; }
-.br-arrow { position: absolute; transform: translate(-50%, -50%); width: 0; height: 0; border-left: 3.5px solid transparent; border-right: 3.5px solid transparent; border-bottom: 8px solid rgba(255, 255, 255, .82); transition: left 1.2s ease, top 1.2s ease, opacity .6s; }
-.br-arrow.me { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 14px; border-bottom-color: var(--accent); filter: drop-shadow(0 0 4px rgba(255, 210, 26, .9)); z-index: 5; }
+.br-players { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.br-arrow { position: absolute; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 10px solid var(--col, #fff); transform: translate(-50%, -50%); transition: left 1.1s ease, top 1.1s ease, opacity .5s; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .7)); }
+.br-arrow.me { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 17px; border-bottom-color: #ffe24d; filter: drop-shadow(0 0 6px rgba(255, 220, 70, 1)); z-index: 6; }
 .br-arrow.dead { opacity: 0; }
 .br-arrow.knocked { border-bottom-color: #ff5a5a; filter: drop-shadow(0 0 5px rgba(255, 80, 80, .9)); }
-.br-hud { display: flex; justify-content: space-between; align-items: center; font-family: "Oswald"; text-transform: uppercase; font-size: 12px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
-.br-hud b { color: var(--accent); font-size: 15px; }
 .map-legend { display: flex; flex-wrap: wrap; gap: 10px 14px; justify-content: center; font-size: 11px; color: var(--muted); margin-bottom: 8px; }
 .map-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 .map-pick { text-align: center; font-family: "Oswald"; font-size: 15px; margin-bottom: 10px; min-height: 20px; color: var(--muted); }
@@ -723,7 +736,9 @@ p { margin: 0; }
 .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-top: 8px; }
 .shop-card { display: flex; gap: 12px; align-items: flex-start; background: rgba(255, 255, 255, .04); border: 1px solid var(--line2); border-radius: 12px; padding: 12px; }
 .shop-card.relo { background: rgba(111, 224, 255, .07); border-color: rgba(111, 224, 255, .3); }
-.shop-ic { font-size: 30px; line-height: 1; }
+.shop-ic { font-size: 30px; line-height: 1; width: 46px; height: 46px; flex: none; display: grid; place-items: center; background: rgba(255, 255, 255, .05); border: 1px solid var(--line2); border-radius: 11px; }
+.shop-ic svg { width: 28px; height: 28px; color: var(--cyan); }
+.shop-card.relo .shop-ic { background: rgba(111, 224, 255, .1); } .shop-card.relo .shop-ic svg { color: var(--accent); }
 .shop-body { flex: 1; min-width: 0; } .shop-body > b { font-family: "Oswald"; text-transform: uppercase; font-size: 15px; display: block; }
 .shop-cur { display: block; font-size: 12px; color: var(--muted); margin: 2px 0 8px; }
 .shop-next { display: flex; align-items: center; justify-content: space-between; gap: 8px; } .shop-next span { font-size: 12.5px; color: var(--ink2); }
